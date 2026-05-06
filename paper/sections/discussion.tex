@@ -1,0 +1,54 @@
+\section*{Discussion}
+
+The final experiments support a narrower and more defensible interpretation of complex layers than a simple
+claim that voting should monotonically improve classification.
+Across both datasets, the most useful information was typically concentrated in the first few neurons, but
+the exact pattern depended on the base learner and on the sparsity regime induced by regularization.
+
+The real-data benchmark showed that later neurons can be useful when the first neuron is strongly sparse.
+Under sparse settings on \texttt{colon\_cancer}, all three learners exhibited at least one configuration in
+which the best mean accuracy appeared after the first neuron.
+This suggests that sequential feature removal can expose complementary predictive structure that is not
+captured by the initial sparse solution alone.
+In contrast, denser first-neuron solutions often concentrated most of the predictive signal immediately,
+leaving little room for later neurons to improve performance.
+
+The synthetic benchmark clarifies why these regimes differ.
+When the first neuron is broad, as in dense \texttt{logreg}, it can recover a large fraction of the true
+signal at once, but later neurons contribute little additional information.
+When the first neuron is narrower, as in sparse \texttt{cpl} or \texttt{svm}, recovery of informative
+features is more gradual, and meaningful gains may emerge only after several neurons.
+This makes neuron depth a useful analytical dimension for studying how a learner decomposes signal, rather
+than merely an aggregation mechanism.
+
+The comparison also exposes a recurring trade-off between signal recovery and feature purity.
+Broader neurons often recovered a larger share of informative variables, but they also selected many
+redundant or noisy features.
+Narrower neurons were cleaner, but they could require several layers before accumulating comparable signal.
+This trade-off is central to the interpretation of later neurons and should be reported explicitly rather than
+collapsed into a single accuracy score, in line with broader feature-selection literature
+\cite{saeys2007review,nogueira2018stability}.
+
+An additional practical observation is that realized depth itself is informative.
+Some configurations reached the nominal limit of 31 neurons, whereas others terminated after only 5--16
+neurons on the synthetic benchmark.
+This suggests that the number of constructible neurons is not a trivial implementation detail; it reflects how
+fast the learner exhausts separable structure under the imposed regularization.
+
+Key limitations remain.
+\begin{itemize}[noitemsep]
+\item \texttt{colon\_cancer} is a small and classical microarray dataset, so its statistical variability is
+high.
+\item The synthetic benchmark is informative because it provides ground truth, but its conclusions remain
+conditional on the chosen block-structured data-generation process.
+\item Regularization values were calibrated to obtain comparable first-neuron widths, not to equalize the
+effective penalty across models; direct numerical comparison of $C$ between learners is therefore not
+meaningful.
+\item The present study does not perform nested model selection, so the reported settings should be interpreted
+as controlled analysis regimes rather than globally optimal hyperparameters.
+\end{itemize}
+
+Future work should extend this analysis to additional high-dimensional biological datasets, investigate the
+stability of neuron-wise feature recovery across repeated resampling \cite{lukaszuk2024importance}, and study whether alternative stopping
+rules can identify the depth at which complementary signal is exhausted and later neurons become primarily
+noise-driven.

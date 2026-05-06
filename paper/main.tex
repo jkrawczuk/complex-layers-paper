@@ -1,0 +1,110 @@
+%% PeerJ manuscript skeleton based on the official Overleaf template.
+%% Note: wlpeerj.cls should be present in this directory (download from template source).
+\documentclass[fleqn,10pt,lineno]{wlpeerj}
+
+\title{Complex Layers of Sparse Linear Neurons for High-Dimensional Classification}
+
+\author[1]{Jerzy Krawczuk}
+\author[1,2]{Leon Bobrowski}
+\affil[1]{Faculty of Computer Science, Bialystok University of Technology, Wiejska 45A, Bialystok, Poland}
+\affil[2]{Institute of Biocybernetics and Biomedical Engineering, PAS, Warsaw, Poland}
+\corrauthor[1]{Jerzy Krawczuk}{j.krawczuk@pb.edu.pl}
+
+% Keywords can be provided in the submission system metadata.
+
+\begin{abstract}
+\textbf{Background.}
+High-dimensional gene-expression datasets remain difficult classification benchmarks because they combine
+very small sample sizes with thousands of correlated features. Sparse linear models are attractive in this
+setting because they can preserve interpretability, but their predictive behaviour may depend strongly on
+the way sparsity is imposed and on how successive feature subsets are constructed. This study examines the
+behaviour of successive sparse neurons in a complex-layer construction, with emphasis on how signal, sparsity,
+and noise evolve across neuron depth.
+
+\textbf{Methods.}
+We study two complementary benchmarks. The first is the classical \texttt{colon\_cancer} microarray dataset
+containing 62 samples, 2,000 features, and two diagnostic classes. The second is a synthetic binary dataset
+with known informative features, redundant correlated features, and noise features, together with an explicit
+ranking of informative-feature strengths. Three linear learners are evaluated within the same complex-layer
+pipeline: \texttt{cpl}, \texttt{svm}, and \texttt{logreg}. In each layer, one sparse neuron is trained and the
+features selected by that neuron are removed before fitting the next one. Performance is assessed using
+repeated stratified cross-validation. For each neuron depth, we report predictive accuracy, sparsity,
+weighted-vote diagnostics, and---for the synthetic benchmark---feature-recovery diagnostics.
+
+\textbf{Results.}
+On \texttt{colon\_cancer}, sparse first-neuron solutions often benefited from later neurons:
+\texttt{cpl} improved from 0.8438 at $n=1$ to 0.8498 at $n=4$, \texttt{svm} from 0.8195 to 0.8512 at $n=3$,
+and \texttt{logreg} from 0.8545 to 0.8657 at $n=4$. In denser regimes, the first neuron more often captured
+most of the predictive signal immediately, although dense \texttt{cpl} still improved from 0.8726 at $n=1$
+to 0.8921 at $n=3$. A train-fold balanced-accuracy weighted vote gave similar conclusions and slightly
+improved sparse \texttt{svm} on \texttt{colon\_cancer} (0.8545 at $n=4$). On the synthetic benchmark, sparse
+configurations of \texttt{cpl}, \texttt{svm}, and \texttt{logreg} reached their best unweighted accuracies at
+$n=12$, $n=11$, and $n=5$, respectively. Ground-truth-aware metrics showed two distinct modes: broad first
+neurons recovered more informative signal at once, whereas narrower first neurons recovered informative
+structure more gradually across successive neurons.
+
+\textbf{Conclusions.}
+The proposed manuscript provides a reproducible benchmarking protocol for layered sparse linear classifiers
+that combines a realistic microarray benchmark with a diagnostic synthetic benchmark of known signal structure.
+Its main value is methodological: it treats neuron depth as an analyzable model dimension rather than assuming
+that deeper voting must improve monotonically. The results indicate that useful signal is usually concentrated
+in the first few neurons, but the way it is distributed across depth depends strongly on the learner and on
+the sparsity regime. The final submission should be accompanied by a permanent archive of the exact code and
+data artifacts used in the study.
+\end{abstract}
+
+\begin{document}
+\flushbottom
+\maketitle
+\thispagestyle{empty}
+
+\input{sections/introduction}
+\input{sections/methods}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+\section*{Acknowledgements}
+This article is the outcome of collaboration developed during Jerzy Krawczuk's research internship at the
+Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences, under the supervision of
+Professor Leon Bobrowski.
+
+\section*{Additional Information and Declarations}
+\subsection*{Funding}
+This work was supported by the grant WZ/WI-IIT/4/2026 from Bialystok University of Technology.
+
+\subsection*{Competing Interests}
+The authors declare there are no competing interests.
+
+\subsection*{Author Contributions}
+Jerzy Krawczuk conceived the study, implemented the experimental pipeline, performed the experiments,
+analyzed the results, and drafted the manuscript.
+
+\noindent
+Leon Bobrowski developed the theoretical framework, supervised the study, interpreted the results,
+and revised the manuscript critically.
+
+\noindent
+Both authors approved the final draft.
+
+\subsection*{Data Availability}
+The source code, experiment configuration, and aggregated results required to reproduce this study are available
+in the project repository archived at [DOI to be added before submission].
+The exact dataset file used in this study is \texttt{data/colon\_cancer.csv}. If redistribution of the dataset
+is restricted, this section should cite the original source and describe precisely how readers can obtain the
+same version used in the manuscript.
+
+\subsection*{Supplemental Information}
+Supplemental material for submission should include: (1) the exact source code used for the reported runs,
+(2) machine-readable result tables, and (3) figure source files or scripts where applicable.
+
+\subsection*{Additional Declarations}
+Jerzy Krawczuk used generative AI assistance during manuscript preparation. The AI system was used for
+language editing, restructuring of selected manuscript sections, coding assistance related to the experimental
+pipeline, and preparation of draft figure and table arrangements. All scientific decisions, experimental
+design choices, result interpretation, and final manuscript revisions were made and verified by the authors.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
