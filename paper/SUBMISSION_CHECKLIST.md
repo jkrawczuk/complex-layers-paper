@@ -1,55 +1,31 @@
-# PeerJ Computer Science submission checklist
+# PeerJ Computer Science Submission Checklist
 
-Ten plik zbiera rzeczy, ktore musza byc gotowe przed wysylka do PeerJ Computer Science.
+This checklist records items that still need a human decision before final submission or Zenodo archiving.
 
 ## Manuscript
 
-- [x] LaTeX skeleton oparty o `wlpeerj`
-- [x] Wlaczone line numbers (`lineno` w klasie dokumentu)
-- [x] Sekcje zgodne z typem `Research Article`
-- [x] `Abstract` przerobiony na format PeerJ (`Background.`, `Methods.`, `Results.`, `Conclusions.`)
-- [ ] Finalny tytul artykulu
-- [ ] Ostateczna tresc wszystkich sekcji
-- [ ] Jezyk ujednolicony do jednego wariantu angielskiego
-- [ ] Sprawdzenie, czy finalny PDF nie przekracza sensownie 40 stron
+- [x] PeerJ LaTeX class included.
+- [x] Line numbers enabled through the document class.
+- [x] Abstract structured as Background, Methods, Results, and Conclusions.
+- [x] Funding statement added.
+- [x] AI assistance declaration added.
+- [ ] Confirm final title.
+- [ ] Confirm final author order, affiliations, and corresponding author metadata.
+- [ ] Review manuscript language for one consistent English variant.
+- [ ] Replace DOI placeholder in Data Availability after Zenodo archiving.
 
-## Author metadata
+## Data And Code
 
-- [ ] Potwierdzona lista autorow i kolejnosc
-- [ ] Potwierdzone afiliacje w dokladnym brzmieniu
-- [ ] Potwierdzony corresponding author
-- [ ] Przygotowana `submission admin` osoba i email do systemu PeerJ
-- [ ] Uzupełnione `Author Contributions`
-- [ ] Uzupełnione `Competing Interests`
-- [ ] Uzupełnione `Funding`
+- [x] Source code organized under `src/edu/but`.
+- [x] Reproducibility scripts organized under `scripts/`.
+- [x] Generated `results/` ignored by git.
+- [ ] Confirm redistribution rights for `data/colon_cancer.csv`.
+- [ ] Decide whether to attach generated result bundles as supplemental/Zenodo artifacts.
+- [ ] Create the exact release intended for submission.
+- [ ] Archive the release on Zenodo and update `CITATION.cff`, `README.md`, and manuscript Data Availability.
 
-## Data and code availability
+## Figures
 
-- [ ] Repozytorium do archiwizacji finalnej wersji kodu
-- [ ] DOI dla snapshotu kodu, najlepiej `Zenodo`
-- [ ] Jasny opis wersji danych uzytej w eksperymentach
-- [ ] Sprawdzenie, czy dane moga byc legalnie redystrybuowane
-- [ ] Finalna tresc `Data Availability`
-- [ ] Przygotowane supplemental files, jesli beda potrzebne
-
-## Figures and tables
-
-- [ ] Wszystkie figury istnieja jako osobne pliki do uploadu
-- [ ] Wszystkie tabele istnieja jako osobne pliki do uploadu
-- [ ] Nazwy figur i tabel odpowiadaja kolejnosci cytowan w tekscie
-- [ ] Podpisy figur i tabel sa kompletne
-- [ ] Pliki rastrowe maja odpowiednia rozdzielczosc
-
-## Policy and ethics
-
-- [ ] Sprawdzenie, czy nie ma dual submission
-- [ ] Deklaracja uzycia AI, jesli dotyczy
-- [ ] Potwierdzenie praw do danych, figur i kodu zewnetrznego
-
-## Recommended next edits in this repo
-
-- [ ] Dopracowac `sections/introduction.tex` tak, aby mocniej uzasadniala problem i pozycjonowala w literaturze
-- [ ] Dopracowac `sections/methods.tex` pod finalny opis ukladu `synthetic + colon_cancer`
-- [ ] Rozbudowac `sections/results.tex` o jednoznaczne wnioski z tabel i wykresow dla obu benchmarkow
-- [ ] Urealnic `Acknowledgements`, `Funding`, `Data Availability`, `Additional Declarations`
-- [ ] Przygotowac finalne osobne pliki w `paper/figures/` i `paper/tables/`
+- [x] Final figure assets included under `paper/figures/`.
+- [x] Figure captions mention uniform vote, weighted vote, and single-neuron trajectories where applicable.
+- [ ] Visually inspect final generated PDF before submission.

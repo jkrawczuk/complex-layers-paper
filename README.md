@@ -5,15 +5,18 @@ Code, data artifacts, and manuscript files for the PeerJ Computer Science submis
 > Complex Layers of Sparse Linear Neurons for High-Dimensional Classification
 
 This repository contains the implementation of Complex Layers classifiers, the exact scripts used for
-the reported experiments, machine-readable result bundles, and the LaTeX manuscript source.
+the reported experiments, the input datasets, final manuscript figure assets, and the LaTeX manuscript source.
 
 ## Repository Contents
 
 - `src/edu/but/` - Python package with Complex Layers models and experiment utilities.
 - `scripts/` - reproducible command-line entry points.
 - `data/` - datasets used by the experiments.
-- `results/paper_runs/` - result bundles used for the manuscript figures and summaries.
-- `paper/` - PeerJ manuscript source, PDF, and figure assets.
+- `paper/` - PeerJ manuscript source and figure assets.
+
+Generated experiment outputs are written under `results/`, which is intentionally ignored by git because raw
+cross-validation prediction bundles can become large. The committed manuscript figures in `paper/figures/`
+were generated from those local bundles.
 
 ## Requirements
 
@@ -130,7 +133,9 @@ dataset/model/regularization bundle:
 - `synthetic_signal`: `cpl_lp`, `svm`, and `logreg` at the selected regularization values.
 
 Use 10-fold cross-validation repeated 10 times for the paper-scale runs. These runs are computationally
-heavier than the smoke check and may take substantial time, especially for `cpl_lp`.
+heavier than the smoke check and may take substantial time, especially for `cpl_lp`. The generated bundles are
+not committed; archive or copy the relevant outputs separately if machine-readable result bundles are required
+for a submission package.
 
 ## Data
 
@@ -179,9 +184,10 @@ Before submission:
 1. Confirm dataset redistribution rights.
 2. Choose and verify the repository license.
 3. Create a release from the exact submitted version.
-4. Archive that release on Zenodo and add the DOI to `CITATION.cff`, this README, and the manuscript
+4. If result bundles are required as supplemental artifacts, regenerate or attach them before archiving.
+5. Archive that release on Zenodo and add the DOI to `CITATION.cff`, this README, and the manuscript
    Data Availability statement.
-5. Check that the archived release contains the files needed to rerun the reported experiments.
+6. Check that the archived release contains the files needed to rerun the reported experiments.
 
 ## Citation
 

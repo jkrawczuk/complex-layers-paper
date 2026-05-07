@@ -2,7 +2,7 @@
 name = "edu-but"
 version = "0.1.0"
 description = "Complex Layers experiments for high-dimensional sparse classification"
-authors = ["Tomasz Łukaszuk <t.lukaszuk@pb.edu.pl>","Jerzy Krawczuk <j.krawczuk@pb.edu.pl>"]
+authors = ["Jerzy Krawczuk <j.krawczuk@pb.edu.pl>", "Leon Bobrowski"]
 readme = "README.md"
 license = "MIT"
 packages = [{ include = "edu", from = "src" }]

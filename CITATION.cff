@@ -10,7 +10,7 @@ authors:
   - family-names: Bobrowski
     given-names: Leon
     affiliation: Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences
-repository-code: "https://github.com/REPLACE_WITH_OWNER/complex-layers-paper"
+repository-code: "https://github.com/jkrawczuk/complex-layers-paper"
 abstract: "Implementation and reproducibility artifacts for experiments with Complex Layers of sparse linear neurons on high-dimensional classification benchmarks."
 keywords:
   - complex layers

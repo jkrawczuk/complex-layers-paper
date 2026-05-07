@@ -1,25 +1,18 @@
-# PeerJ manuscript skeleton
+# Manuscript Build Notes
 
-Ten katalog zawiera zalazek artykulu zgodny z template PeerJ (`wlpeerj`).
+The manuscript uses the PeerJ `wlpeerj` LaTeX class included in this directory.
 
-## Pliki
-- `main.tex` - glowny plik manuskryptu
-- `sections/*.tex` - sekcje artykulu
-- `references.bib` - bibliografia
+Recommended local build:
 
-## Wymagany plik klasy
-Do kompilacji potrzebny jest `wlpeerj.cls`.
-
-Pobranie:
-1. Otworz template PeerJ na Overleaf.
-2. Kliknij `Open as Template`.
-3. Pobierz source i skopiuj `wlpeerj.cls` do `paper/`.
-
-## Kompilacja lokalna (przyklad)
 ```bash
 cd paper
-pdflatex main.tex
-bibtex main
-pdflatex main.tex
-pdflatex main.tex
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
+
+Clean auxiliary files after building:
+
+```bash
+latexmk -c main.tex
+```
+
+The generated `main.pdf` is intentionally ignored and should be produced from source when needed.

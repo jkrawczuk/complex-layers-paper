@@ -76,10 +76,14 @@ features after each neuron. This construction follows the Complex Layers of Form
 right. For each depth, we inspect both the prediction of the $n$-th neuron itself and the cumulative prediction
 obtained by majority voting over the first $n$ neurons.
 
+The label \texttt{cpl} refers to the convex piecewise-linear base learner implemented for this study. Its
+objective combines hinge loss with L1 regularization; both terms are convex piecewise-linear, so the resulting
+sparse linear neuron can be trained as a linear programming problem. It is evaluated as one possible base
+learner inside the same complex-layer protocol as the two standard sparse linear baselines.
 Base learners evaluated in this study:
 \begin{itemize}[noitemsep]
-\item \texttt{cpl}: CPL classifier trained with the LP-based hinge + L1 formulation used in the reported experiments.
-\item \texttt{svm}: LinearSVC (squared hinge + L1).
+\item \texttt{cpl}: convex piecewise-linear neuron trained with the LP-based hinge + L1 formulation used in the reported experiments.
+\item \texttt{svm}: LinearSVC (squared hinge loss + L1 regularization).
 \item \texttt{logreg}: logistic regression with L1 regularization.
 \end{itemize}
 The use of L1-type regularization is motivated by its long-standing role in sparse estimation and feature
@@ -188,7 +192,7 @@ For the synthetic benchmark, we additionally report feature-recovery metrics der
 \end{itemize}
 
 These metrics are used to characterize the role of successive neurons, not only the final classifier output.
-In particular, they allow us to distinguish between three behaviours: early concentration of useful signal,
+In particular, they allow us to distinguish between three behaviors: early concentration of useful signal,
 complementary signal acquisition by intermediate neurons, and late-stage domination by noise.
 This emphasis goes beyond pure prediction accuracy and is consistent with prior arguments that feature
 selection quality and stability deserve explicit evaluation in high-dimensional settings

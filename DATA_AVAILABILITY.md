@@ -28,7 +28,7 @@ instructions for obtaining and preparing the same dataset version.
 
 Use this only after replacing placeholders:
 
-> The source code, experiment scripts, synthetic dataset, generated result bundles, and manuscript source are
-> available in the archived repository at [Zenodo DOI]. The synthetic dataset generation parameters and
+> The source code, experiment scripts, synthetic dataset, final manuscript figure assets, and manuscript source
+> are available in the archived repository at [Zenodo DOI]. The synthetic dataset generation parameters and
 > ground-truth informative features are recorded in `data/synthetic_signal.metadata.json`. The colon cancer microarray benchmark was
 > obtained from [source/citation] and prepared as `data/colon_cancer.csv` using [preprocessing description].

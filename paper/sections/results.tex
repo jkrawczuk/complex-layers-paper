@@ -86,8 +86,9 @@ concentrate the available predictive signal immediately.
 \includegraphics[width=\linewidth]{figures/colon_cancer/logreg_c3p5_features_nth_neuron.png}
 \end{minipage}
 
-\caption{Sparse-regime trajectories on \texttt{colon\_cancer}. Top row: mean vote accuracy as a function of
-neuron depth. Bottom row: average number of features selected by the $n$-th neuron. From left to right:
+\caption{Sparse-regime trajectories on \texttt{colon\_cancer}. Top row: mean accuracy trajectories for
+uniform vote, training-quality weighted vote, and the individual $n$-th neuron. Bottom row: average number
+of features selected by the $n$-th neuron. From left to right:
 \texttt{cpl} with $C=0.03$, \texttt{svm} with $C=1.2$, and \texttt{logreg} with $C=3.5$.}
 \label{fig:colon_sparse_panels}
 \end{figure}
@@ -149,7 +150,7 @@ Some later synthetic depths produced higher weighted-vote values after many spli
 (for example sparse \texttt{logreg} at $n=5$), but these estimates were based on reduced coverage and are
 therefore treated as diagnostic rather than primary performance estimates.
 
-These synthetic results separate two modes of behaviour.
+These synthetic results separate two modes of behavior.
 Some models, especially denser \texttt{logreg}, concentrate a large fraction of the ground-truth signal in
 the first neuron.
 Other configurations, including sparse \texttt{cpl} and \texttt{svm}, recover informative structure more
@@ -184,8 +185,9 @@ gradually across successive neurons.
 \includegraphics[width=\linewidth]{figures/synthetic_signal/logreg_c5_feature_recovery.png}
 \end{minipage}
 
-\caption{Sparse-regime trajectories on the synthetic benchmark. Top row: mean vote accuracy by neuron depth.
-Bottom row: ground-truth-aware feature-recovery plots. From left to right: \texttt{cpl} with $C=0.035$,
+\caption{Sparse-regime trajectories on the synthetic benchmark. Top row: mean accuracy trajectories for
+uniform vote, training-quality weighted vote, and the individual $n$-th neuron. Bottom row:
+ground-truth-aware feature-recovery plots. From left to right: \texttt{cpl} with $C=0.035$,
 \texttt{svm} with $C=2.0$, and \texttt{logreg} with $C=5.0$.}
 \label{fig:synthetic_sparse_panels}
 \end{figure}

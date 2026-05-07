@@ -40,7 +40,7 @@ def _ci95_bounds(mean_vals, std_vals, coverage_vals, low_clip=None, high_clip=No
     return lows, highs
 
 
-def save_accuracy_plot(results, out_path: Path):
+def save_accuracy_plot(results, out_path: Path, weighted_results=None):
     x = [r["n_neurons"] for r in results]
     vote = [r["mean_accuracy"] for r in results]
     vote_std = [r["std_accuracy"] for r in results]
@@ -81,6 +81,36 @@ def save_accuracy_plot(results, out_path: Path):
         color="#d62728",
         alpha=0.12,
     )
+    if weighted_results:
+        weighted_x = [r["n_neurons"] for r in weighted_results]
+        weighted_vote = [r["mean_accuracy"] for r in weighted_results]
+        weighted_vote_std = [r["std_accuracy"] for r in weighted_results]
+        weighted_coverage = [r.get("coverage_n") for r in weighted_results]
+        if not all(v is not None for v in weighted_coverage):
+            weighted_coverage = [1 for _ in weighted_x]
+        weighted_lo, weighted_hi = _ci95_bounds(
+            weighted_vote,
+            weighted_vote_std,
+            weighted_coverage,
+            low_clip=0.0,
+            high_clip=1.0,
+        )
+        ax.plot(
+            weighted_x,
+            weighted_vote,
+            marker="^",
+            linestyle="--",
+            linewidth=2.0,
+            color="#2ca02c",
+            label="weighted_vote_accuracy",
+        )
+        ax.fill_between(
+            weighted_x,
+            weighted_lo,
+            weighted_hi,
+            color="#2ca02c",
+            alpha=0.10,
+        )
     ax.set_ylabel("accuracy")
     ax.set_ylim(0.5, 1.0)
     ax.grid(True, alpha=0.35)

@@ -29,8 +29,13 @@ treated as an important evaluation dimension in high-dimensional classification,
 diagnostic after predictive accuracy \cite{lukaszuk2024importance}.
 
 We compare three methods under the same protocol:
-\texttt{cpl}, \texttt{svm}, and \texttt{logreg}. The goal is to assess how predictive performance, sparsity,
-computational cost, and feature-recovery behaviour evolve across successive neurons in a controlled repeated
+\texttt{cpl}, \texttt{svm}, and \texttt{logreg}. Here, \texttt{cpl} denotes the convex piecewise-linear
+formulation used for the custom sparse neuron: the hinge-loss objective with L1 regularization is convex and
+piecewise linear, which allows the neuron to be trained through linear programming. In contrast,
+\texttt{svm} denotes the squared-hinge-loss linear SVM with L1 regularization, and \texttt{logreg} denotes
+the corresponding L1-regularized logistic-regression base learner.
+The goal is to assess how predictive performance, sparsity,
+computational cost, and feature-recovery behavior evolve across successive neurons in a controlled repeated
 cross-validation setup.
 The compared learners are all grounded in well-established sparse linear classification frameworks, including
 L1-regularized logistic models and large-scale linear classifiers \cite{friedman2010glmnet,fan2008liblinear}.

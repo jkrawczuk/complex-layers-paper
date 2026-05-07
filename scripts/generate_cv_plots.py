@@ -81,8 +81,12 @@ def main():
 
     results = _parse_csv(metrics_dir / "results.csv", rename_keys=True)
     per_split_rows = _parse_csv(metrics_dir / "per_split_metrics.csv", rename_keys=False)
+    weighted_results_path = metrics_dir / "weighted_vote_results.csv"
+    weighted_results = None
+    if weighted_results_path.exists():
+        weighted_results = _parse_csv(weighted_results_path, rename_keys=True)
 
-    save_accuracy_plot(results, figures_dir / "accuracy.png")
+    save_accuracy_plot(results, figures_dir / "accuracy.png", weighted_results=weighted_results)
     save_loss_l1_plot(results, figures_dir / "loss_l1_norm.png")
     save_features_plot(results, figures_dir / "features_nth_neuron.png")
     save_train_test_gap_plot(results, figures_dir / "neuron_train_test_accuracy.png")

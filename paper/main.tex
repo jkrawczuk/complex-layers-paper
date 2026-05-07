@@ -16,9 +16,9 @@
 \textbf{Background.}
 High-dimensional gene-expression datasets remain difficult classification benchmarks because they combine
 very small sample sizes with thousands of correlated features. Sparse linear models are attractive in this
-setting because they can preserve interpretability, but their predictive behaviour may depend strongly on
+setting because they can preserve interpretability, but their predictive behavior may depend strongly on
 the way sparsity is imposed and on how successive feature subsets are constructed. This study examines the
-behaviour of successive sparse neurons in a complex-layer construction, with emphasis on how signal, sparsity,
+behavior of successive sparse neurons in a complex-layer construction, with emphasis on how signal, sparsity,
 and noise evolve across neuron depth.
 
 \textbf{Methods.}
@@ -26,7 +26,8 @@ We study two complementary benchmarks. The first is the classical \texttt{colon\
 containing 62 samples, 2,000 features, and two diagnostic classes. The second is a synthetic binary dataset
 with known informative features, redundant correlated features, and noise features, together with an explicit
 ranking of informative-feature strengths. Three linear learners are evaluated within the same complex-layer
-pipeline: \texttt{cpl}, \texttt{svm}, and \texttt{logreg}. In each layer, one sparse neuron is trained and the
+pipeline: \texttt{cpl} (convex piecewise-linear; an LP-trained sparse neuron based on hinge loss with L1
+regularization), \texttt{svm} (squared hinge loss with L1 regularization), and \texttt{logreg}. In each layer, one sparse neuron is trained and the
 features selected by that neuron are removed before fitting the next one. Performance is assessed using
 repeated stratified cross-validation. For each neuron depth, we report predictive accuracy, sparsity,
 weighted-vote diagnostics, and---for the synthetic benchmark---feature-recovery diagnostics.
@@ -44,13 +45,13 @@ neurons recovered more informative signal at once, whereas narrower first neuron
 structure more gradually across successive neurons.
 
 \textbf{Conclusions.}
-The proposed manuscript provides a reproducible benchmarking protocol for layered sparse linear classifiers
+This study provides a reproducible benchmarking protocol for layered sparse linear classifiers
 that combines a realistic microarray benchmark with a diagnostic synthetic benchmark of known signal structure.
 Its main value is methodological: it treats neuron depth as an analyzable model dimension rather than assuming
 that deeper voting must improve monotonically. The results indicate that useful signal is usually concentrated
 in the first few neurons, but the way it is distributed across depth depends strongly on the learner and on
-the sparsity regime. The final submission should be accompanied by a permanent archive of the exact code and
-data artifacts used in the study.
+the sparsity regime. The accompanying repository is structured to support permanent archiving of the exact code
+and data artifacts used in the study.
 \end{abstract}
 
 \begin{document}
@@ -88,8 +89,8 @@ and revised the manuscript critically.
 Both authors approved the final draft.
 
 \subsection*{Data Availability}
-The source code, experiment configuration, and aggregated results required to reproduce this study are available
-in the project repository archived at [DOI to be added before submission].
+The source code, experiment scripts, input datasets, and final manuscript figure assets are available in the
+project repository archived at [DOI to be added before submission].
 The exact dataset file used in this study is \texttt{data/colon\_cancer.csv}. If redistribution of the dataset
 is restricted, this section should cite the original source and describe precisely how readers can obtain the
 same version used in the manuscript.
