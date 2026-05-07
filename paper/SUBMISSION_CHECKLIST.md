@@ -19,7 +19,7 @@ This checklist records items that still need a human decision before final submi
 - [x] Source code organized under `src/edu/but`.
 - [x] Reproducibility scripts organized under `scripts/`.
 - [x] Generated `results/` ignored by git.
-- [ ] Confirm redistribution rights for `data/colon_cancer.csv`.
+- [x] Document redistribution basis for `data/colon_cancer.csv` through Bioconductor `colonCA`.
 - [ ] Decide whether to attach generated result bundles as supplemental/Zenodo artifacts.
 - [ ] Create the exact release intended for submission.
 - [ ] Archive the release on Zenodo and update `CITATION.cff`, `README.md`, and manuscript Data Availability.

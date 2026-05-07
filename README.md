@@ -142,11 +142,12 @@ for a submission package.
 - `data/synthetic_signal.csv` is the synthetic benchmark used in the manuscript.
 - `data/synthetic_signal.metadata.json` records the synthetic-data generation parameters and ground-truth
   informative features.
-- `data/colon_cancer.csv` is the colon cancer microarray benchmark used in the manuscript.
+- `data/colon_cancer.csv` is the processed colon cancer microarray benchmark used in the manuscript. It is
+  derived from the Alon et al. benchmark distributed by the Bioconductor `colonCA` experiment data package
+  (DOI: `10.18129/B9.bioc.colonCA`; package license: LGPL).
 
-Before making the repository public or archiving it on Zenodo, confirm that `data/colon_cancer.csv` may be
-redistributed under the chosen repository license. If redistribution is not permitted, remove that file from
-the public archive and document the original source and exact preprocessing needed to recreate it.
+Dataset provenance and licensing are tracked in `DATA_LICENSES.md`. The repository MIT license applies to the
+source code; the colon cancer benchmark should be treated under the terms of the upstream data package license.
 
 ## Output Bundle Format
 
@@ -196,5 +197,5 @@ Until a DOI is assigned, cite the repository using `CITATION.cff`. After Zenodo 
 
 ## License
 
-This repository currently uses the MIT License for code. Dataset licensing must be verified separately,
-especially for `data/colon_cancer.csv`.
+This repository currently uses the MIT License for code. Dataset licensing is tracked separately in
+`DATA_LICENSES.md`.
