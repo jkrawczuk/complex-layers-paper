@@ -41,10 +41,7 @@ The final synthetic dataset used in this study has:
 
 The signal structure is organized into three latent blocks. Each block contains four informative features and
 twelve redundant features. Informative features are indexed first, followed by redundant features, and finally
-the noise features. The three signal blocks have decreasing strengths:
-\[
-1.2,\quad 0.9,\quad 0.6.
-\]
+the noise features. The three signal blocks have decreasing strengths of $1.2$, $0.9$, and $0.6$.
 
 For each block, we first sample a latent Gaussian variable. Then, the four informative features assigned to that
 block are generated as noisy linear measurements of the corresponding latent variable, with within-block weights

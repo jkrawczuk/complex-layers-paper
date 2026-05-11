@@ -30,20 +30,20 @@ accuracy, and the realized number of neurons.}
 
 \subsection*{Colon cancer benchmark}
 On \texttt{colon\_cancer}, the sparse regime often benefited from the first few successive neurons.
-For \texttt{cpl} with $C=0.03$, the mean vote accuracy increased from 0.8438 for the first neuron to
+For \texttt{cpl} with $C_{\mathrm{low}}$, the mean vote accuracy increased from 0.8438 for the first neuron to
 0.8498 at $n=4$, while the average number of features per neuron remained close to four
 (4.28, 4.59, 4.05, and 3.51 for $n=1,\dots,4$).
-For \texttt{svm} with $C=1.2$, accuracy increased from 0.8195 at $n=1$ to 0.8512 at $n=3$, with the
+For \texttt{svm} with $C_{\mathrm{low}}$, accuracy increased from 0.8195 at $n=1$ to 0.8512 at $n=3$, with the
 average neuron width growing from 4.83 to 8.01 features.
-For \texttt{logreg} with $C=3.5$, the best result also appeared after several neurons rather than at the
+For \texttt{logreg} with $C_{\mathrm{low}}$, the best result also appeared after several neurons rather than at the
 first one, increasing from 0.8545 at $n=1$ to 0.8657 at $n=4$.
 
 The denser regime produced a different pattern.
-For \texttt{svm} with $C=6.0$ and \texttt{logreg} with $C=6.4$, the best mean accuracy was already achieved
+For \texttt{svm} and \texttt{logreg} with $C_{\mathrm{high}}$, the best mean accuracy was already achieved
 by the first neuron (0.8769 and 0.8726, respectively), and additional neurons did not improve the model.
 In these settings, the first neuron was substantially wider, selecting on average 24.72 features for
 \texttt{svm} and 30.59 features for \texttt{logreg}; later neurons became even broader.
-The main exception was \texttt{cpl} with $C=0.08$, where the mean vote accuracy improved from 0.8726 at
+The main exception was \texttt{cpl} with $C_{\mathrm{high}}$, where the mean vote accuracy improved from 0.8726 at
 $n=1$ to 0.8921 at $n=3$, while the neuron width increased from 21.33 to 25.57 features.
 
 The weighted vote based on training-fold balanced accuracy did not change the main ranking of the
@@ -89,7 +89,7 @@ concentrate the available predictive signal immediately.
 \caption{Sparse-regime trajectories on \texttt{colon\_cancer}. Top row: mean accuracy trajectories for
 uniform vote, training-quality weighted vote, and the individual $n$-th neuron. Bottom row: average number
 of features selected by the $n$-th neuron. From left to right:
-\texttt{cpl} with $C=0.03$, \texttt{svm} with $C=1.2$, and \texttt{logreg} with $C=3.5$.}
+\texttt{cpl}, \texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$.}
 \label{fig:colon_sparse_panels}
 \end{figure}
 
@@ -120,27 +120,27 @@ the table reports first-neuron feature precision and cumulative informative-feat
 \end{table}
 
 In the sparse regime, later neurons frequently improved predictive performance.
-For \texttt{cpl} with $C=0.035$, accuracy increased from 0.7990 at $n=1$ to 0.8500 at $n=12$, while
+For \texttt{cpl} with $C_{\mathrm{low}}$, accuracy increased from 0.7990 at $n=1$ to 0.8500 at $n=12$, while
 the first neuron selected only 4.04 features on average.
 Its first-neuron informative-feature precision was 0.3268, with feature recall 0.1042 and noise fraction
 0.6732.
-For \texttt{svm} with $C=2.0$, the best mean vote accuracy was 0.8417 at $n=11$, compared with 0.8200 at
+For \texttt{svm} with $C_{\mathrm{low}}$, the best mean vote accuracy was 0.8417 at $n=11$, compared with 0.8200 at
 $n=1$.
 The first neuron selected 6.89 features on average, with precision 0.1881, recall 0.1058, and noise
 fraction 0.8119.
-For \texttt{logreg} with $C=5.0$, the best result occurred at $n=5$, improving from 0.7710 at $n=1$ to
+For \texttt{logreg} with $C_{\mathrm{low}}$, the best result occurred at $n=5$, improving from 0.7710 at $n=1$ to
 0.8500 at $n=5$.
 
 In the denser regime, the first neuron often captured a larger fraction of the true signal, but additional
 neurons contributed less useful information.
-This was clearest for \texttt{logreg} with $C=9.2$, where the first neuron already achieved the best mean
+This was clearest for \texttt{logreg} with $C_{\mathrm{high}}$, where the first neuron already achieved the best mean
 accuracy of 0.8150, selected 28.09 features on average, recovered 47.5\% of informative features, and
 captured 71.1\% cumulative recall after only two neurons.
 However, later neurons added almost no new informative signal, and performance gradually declined.
-For \texttt{svm} with $C=3.5$, the first neuron was much less precise (precision 0.0680, noise fraction
+For \texttt{svm} with $C_{\mathrm{high}}$, the first neuron was much less precise (precision 0.0680, noise fraction
 0.9320), but cumulative informative-feature recall increased from 0.1525 at $n=1$ to 0.5608 at $n=3$ and
 0.8367 by $n=5$.
-For \texttt{cpl} with $C=0.05$, cumulative informative-feature recall increased from 0.1325 at $n=1$ to
+For \texttt{cpl} with $C_{\mathrm{high}}$, cumulative informative-feature recall increased from 0.1325 at $n=1$ to
 0.4825 at $n=3$ and 0.6792 at $n=5$, but at the cost of broad and noisy neurons.
 
 Weighted voting again gave a more nuanced picture than a uniform improvement. At full 100-split coverage, the
@@ -187,8 +187,8 @@ gradually across successive neurons.
 
 \caption{Sparse-regime trajectories on the synthetic benchmark. Top row: mean accuracy trajectories for
 uniform vote, training-quality weighted vote, and the individual $n$-th neuron. Bottom row:
-ground-truth-aware feature-recovery plots. From left to right: \texttt{cpl} with $C=0.035$,
-\texttt{svm} with $C=2.0$, and \texttt{logreg} with $C=5.0$.}
+ground-truth-aware feature-recovery plots. From left to right: \texttt{cpl}, \texttt{svm}, and
+\texttt{logreg} with $C_{\mathrm{low}}$.}
 \label{fig:synthetic_sparse_panels}
 \end{figure}
 

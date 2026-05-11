@@ -26,8 +26,9 @@ We study two complementary benchmarks. The first is the classical \texttt{colon\
 containing 62 samples, 2,000 features, and two diagnostic classes. The second is a synthetic binary dataset
 with known informative features, redundant correlated features, and noise features, together with an explicit
 ranking of informative-feature strengths. Three linear learners are evaluated within the same complex-layer
-pipeline: \texttt{cpl} (convex piecewise-linear; an LP-trained sparse neuron based on hinge loss with L1
-regularization), \texttt{svm} (squared hinge loss with L1 regularization), and \texttt{logreg}. In each layer, one sparse neuron is trained and the
+pipeline: \texttt{cpl} (convex piecewise-linear; hinge loss with L1 regularization), \texttt{svm}
+(squared hinge loss with L1 regularization), and \texttt{logreg} (logistic loss with L1 regularization).
+In each layer, one sparse neuron is trained and the
 features selected by that neuron are removed before fitting the next one. Performance is assessed using
 repeated stratified cross-validation. For each neuron depth, we report predictive accuracy, sparsity,
 weighted-vote diagnostics, and---for the synthetic benchmark---feature-recovery diagnostics.
