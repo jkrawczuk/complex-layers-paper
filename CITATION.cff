@@ -11,6 +11,7 @@ authors:
     given-names: Leon
     affiliation: Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences
 repository-code: "https://github.com/jkrawczuk/complex-layers-paper"
+doi: 10.5281/zenodo.20712674
 abstract: "Implementation and reproducibility artifacts for experiments with Complex Layers of sparse formal neurons on high-dimensional classification benchmarks."
 keywords:
   - complex layers

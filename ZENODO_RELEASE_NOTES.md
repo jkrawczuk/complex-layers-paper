@@ -2,6 +2,8 @@
 
 Release tag: `v1.0.0-peerj-submission`
 
+Zenodo DOI: `10.5281/zenodo.20712674`
+
 ## Main Archive
 
 The GitHub release archive contains the tracked repository files:
@@ -37,11 +39,6 @@ later release states otherwise. The processed `data/colon_cancer.csv` file corre
 `colonCA` experiment data package (DOI: `10.18129/B9.bioc.colonCA`) and follows the upstream `colonCA` LGPL
 package license, not the repository MIT code license.
 
-## DOI Updates
+## DOI Status
 
-After Zenodo DOI assignment, update DOI references in:
-
-- `CITATION.cff`;
-- `README.md`;
-- `DATA_AVAILABILITY.md`;
-- `paper/main.tex`.
+The Zenodo DOI is recorded in `CITATION.cff`, `README.md`, `DATA_AVAILABILITY.md`, and `paper/main.tex`.

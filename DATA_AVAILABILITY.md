@@ -26,7 +26,7 @@ upstream LGPL package license.
 ## Repository Archive
 
 The source code, experiment scripts, synthetic dataset, final manuscript figure assets, and manuscript source
-are available in this repository. Persistent archive DOI status: pending Zenodo assignment.
+are available in this repository and archived on Zenodo under DOI `10.5281/zenodo.20712674`.
 
 The synthetic dataset generation parameters and ground-truth informative features are recorded in
 `data/synthetic_signal.metadata.json`. The colon cancer microarray benchmark corresponds to the Alon et al.

@@ -178,8 +178,7 @@ The repository includes `paper/wlpeerj.cls`. Generated LaTeX auxiliary files are
 
 ## Citation
 
-Until a DOI is assigned, cite the repository using `CITATION.cff`. After Zenodo archiving, add the DOI to
-`CITATION.cff`, this README, and the manuscript.
+Cite the archived release using DOI `10.5281/zenodo.20712674` or the metadata in `CITATION.cff`.
 
 ## License
 
