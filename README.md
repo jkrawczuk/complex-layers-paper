@@ -133,9 +133,9 @@ dataset/model/regularization bundle:
 - `synthetic_signal`: `cpl`, `svm`, and `logreg` at the selected regularization values.
 
 Use 10-fold cross-validation repeated 10 times for the paper-scale runs. These runs are computationally
-heavier than the smoke check and may take substantial time, especially for `cpl`. The generated bundles are
-not committed; archive or copy the relevant outputs separately if machine-readable result bundles are required
-for a submission package.
+heavier than the smoke check and may take substantial time; in the archived paper-run bundles, `logreg` was
+the longest-running model. The generated paper-run bundles are not committed to git; they are packaged for
+Zenodo as `complex-layers-paper-runs-v1.0.0.zip`.
 
 ## Data
 
@@ -175,21 +175,6 @@ pdflatex main.tex
 ```
 
 The repository includes `paper/wlpeerj.cls`. Generated LaTeX auxiliary files are ignored by `.gitignore`.
-
-## Publication Checklist
-
-PeerJ Computer Science requires the code and data needed to reproduce the submission to be available at
-submission time. For GitHub/GitLab repositories, PeerJ expects a persistent archive DOI, commonly via Zenodo.
-
-Before submission:
-
-1. Confirm dataset redistribution rights.
-2. Choose and verify the repository license.
-3. Create a release from the exact submitted version.
-4. If result bundles are required as supplemental artifacts, regenerate or attach them before archiving.
-5. Archive that release on Zenodo and add the DOI to `CITATION.cff`, this README, and the manuscript
-   Data Availability statement.
-6. Check that the archived release contains the files needed to rerun the reported experiments.
 
 ## Citation
 

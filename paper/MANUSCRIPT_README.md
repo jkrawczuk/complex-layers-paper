@@ -15,4 +15,4 @@ Clean auxiliary files after building:
 latexmk -c main.tex
 ```
 
-The generated `main.pdf` is intentionally ignored and should be produced from source when needed.
+The generated `main.pdf` is intentionally ignored and is produced from source when needed.

@@ -27,7 +27,7 @@ License/provenance note: treat this dataset as redistributed under the terms of 
 package license, not under the repository MIT code license. Cite both Alon et al. (1999) and the archived
 repository when using the processed CSV.
 
-For Zenodo and other archival releases, the intended license separation is:
+For Zenodo and other archival releases, the license separation is:
 
 - source code: MIT License;
 - `data/synthetic_signal.csv` and its metadata: MIT License unless the release states otherwise;

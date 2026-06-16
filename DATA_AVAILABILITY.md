@@ -1,7 +1,7 @@
-# Data Availability Notes
+# Data Availability
 
-This file records the data artifacts currently present in the repository and the checks needed before public
-release.
+This file records the data artifacts distributed with the repository and the provenance notes needed for
+archival release metadata.
 
 ## Included Data
 
@@ -23,15 +23,14 @@ For archival metadata, state the license separation explicitly: source code is M
 `data/colon_cancer.csv` is redistributed as a processed form of the Bioconductor `colonCA` dataset under the
 upstream LGPL package license.
 
-## PeerJ Submission Text Template
+## Repository Archive
 
-Use this only after replacing placeholders:
+The source code, experiment scripts, synthetic dataset, final manuscript figure assets, and manuscript source
+are available in this repository. Persistent archive DOI status: pending Zenodo assignment.
 
-> The source code, experiment scripts, synthetic dataset, final manuscript figure assets, and manuscript source
-> are available in the archived repository at [Zenodo DOI]. The synthetic dataset generation parameters and
-> ground-truth informative features are recorded in `data/synthetic_signal.metadata.json`. The colon cancer
-> microarray benchmark corresponds to the Alon et al. (1999) dataset distributed by the Bioconductor `colonCA`
-> experiment data package (DOI: `10.18129/B9.bioc.colonCA`; LGPL) and is included as
-> `data/colon_cancer.csv` in the processed CSV form used for the experiments. The repository source code is
-> MIT licensed; `data/colon_cancer.csv` is redistributed under the upstream `colonCA` LGPL package license,
-> not under the repository MIT license.
+The synthetic dataset generation parameters and ground-truth informative features are recorded in
+`data/synthetic_signal.metadata.json`. The colon cancer microarray benchmark corresponds to the Alon et al.
+(1999) dataset distributed by the Bioconductor `colonCA` experiment data package (DOI:
+`10.18129/B9.bioc.colonCA`; LGPL) and is included as `data/colon_cancer.csv` in the processed CSV form used
+for the experiments. The repository source code is MIT licensed; `data/colon_cancer.csv` is redistributed
+under the upstream `colonCA` LGPL package license, not under the repository MIT license.
