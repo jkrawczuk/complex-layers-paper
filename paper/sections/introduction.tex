@@ -6,12 +6,12 @@ sequential neurons and removing selected features after each step.
 This setting is also a classical use case for sparse linear modeling and embedded feature selection
 \cite{tibshirani1996lasso,ng2004l1l2,saeys2007review}.
 
-This work focuses on two complementary benchmarks. The first is the \texttt{colon\_cancer} microarray dataset,
+This work focuses on two complementary benchmarks. The first is the colon cancer microarray dataset,
 one of the canonical benchmarks in bioinformatics and machine learning for high-dimensional classification
 \cite{alon1999,guyon2002,dudoit2002,li2004}. It originates from the colon tumor vs.\ normal tissue profiling
 study published in 1999 \cite{alon1999}. Across more than two decades, this benchmark has been repeatedly used
 to evaluate feature selection, sparse linear models, and stability of classification under strong
-$p \gg n$ conditions \cite{guyon2002,dudoit2002,li2004}. In comparative studies, \texttt{colon\_cancer}
+$p \gg n$ conditions \cite{guyon2002,dudoit2002,li2004}. In comparative studies, this benchmark
 typically yields high-80\% to mid-90\% accuracy ranges depending on validation protocol and feature-selection
 strategy \cite{guyon2002,dudoit2002,li2004}.
 
@@ -48,8 +48,7 @@ when they become dominated by redundant or noisy features.
 Main contributions:
 \begin{enumerate}[noitemsep]
 \item A unified complex-layer framework evaluated with three linear sparse learners.
-\item A repeated cross-validation benchmark on the classical \texttt{colon\_cancer} microarray dataset.
+\item A repeated cross-validation benchmark on the classical colon cancer microarray dataset.
 \item A synthetic benchmark with known feature relevance and known ranking of signal strengths.
-\item Reproducible reporting of neuron-by-neuron accuracy, sparsity, weighted voting, and feature-recovery
-diagnostics.
+\item Reproducible reporting of neuron-by-neuron accuracy, sparsity, weighted voting, and feature recovery.
 \end{enumerate}

@@ -41,6 +41,8 @@
                 labelsep=period,%
                 justification=raggedright]{caption}
                 
+\RequirePackage{natbib}
+\bibliographystyle{apalike}
 
 %
 % writeLaTeX logo

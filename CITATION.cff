@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this software or the accompanying experiment artifacts, please cite the archived release."
-title: "Complex Layers of Sparse Linear Neurons for High-Dimensional Classification"
+title: "Complex Layers of Sparse Formal Neurons for High-Dimensional Classification"
 type: software
 authors:
   - family-names: Krawczuk
@@ -11,13 +11,13 @@ authors:
     given-names: Leon
     affiliation: Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences
 repository-code: "https://github.com/jkrawczuk/complex-layers-paper"
-abstract: "Implementation and reproducibility artifacts for experiments with Complex Layers of sparse linear neurons on high-dimensional classification benchmarks."
+abstract: "Implementation and reproducibility artifacts for experiments with Complex Layers of sparse formal neurons on high-dimensional classification benchmarks."
 keywords:
   - complex layers
-  - sparse linear classifiers
+  - sparse formal neurons
   - high-dimensional classification
   - microarray classification
   - reproducible research
 license: MIT
-version: 0.1.0
-date-released: 2026-05-02
+version: 1.0.0
+date-released: 2026-06-16

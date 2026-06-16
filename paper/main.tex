@@ -2,10 +2,10 @@
 %% Note: wlpeerj.cls should be present in this directory (download from template source).
 \documentclass[fleqn,10pt,lineno]{wlpeerj}
 
-\title{Complex Layers of Sparse Linear Neurons for High-Dimensional Classification}
+\title{Complex Layers of Sparse Formal Neurons for High-Dimensional Classification}
 
 \author[1]{Jerzy Krawczuk}
-\author[1,2]{Leon Bobrowski}
+\author[2]{Leon Bobrowski}
 \affil[1]{Faculty of Computer Science, Bialystok University of Technology, Wiejska 45A, Bialystok, Poland}
 \affil[2]{Institute of Biocybernetics and Biomedical Engineering, PAS, Warsaw, Poland}
 \corrauthor[1]{Jerzy Krawczuk}{j.krawczuk@pb.edu.pl}
@@ -22,24 +22,24 @@ behavior of successive sparse neurons in a complex-layer construction, with emph
 and noise evolve across neuron depth.
 
 \textbf{Methods.}
-We study two complementary benchmarks. The first is the classical \texttt{colon\_cancer} microarray dataset
+We study two complementary benchmarks. The first is the classical colon cancer microarray dataset
 containing 62 samples, 2,000 features, and two diagnostic classes. The second is a synthetic binary dataset
 with known informative features, redundant correlated features, and noise features, together with an explicit
 ranking of informative-feature strengths. Three linear learners are evaluated within the same complex-layer
-pipeline: \texttt{cpl} (convex piecewise-linear; hinge loss with L1 regularization), \texttt{svm}
+protocol: \texttt{cpl} (convex piecewise-linear; hinge loss with L1 regularization), \texttt{svm}
 (squared hinge loss with L1 regularization), and \texttt{logreg} (logistic loss with L1 regularization).
 In each layer, one sparse neuron is trained and the
 features selected by that neuron are removed before fitting the next one. Performance is assessed using
 repeated stratified cross-validation. For each neuron depth, we report predictive accuracy, sparsity,
-weighted-vote diagnostics, and---for the synthetic benchmark---feature-recovery diagnostics.
+weighted voting, and---for the synthetic benchmark---feature-recovery analysis.
 
 \textbf{Results.}
-On \texttt{colon\_cancer}, sparse first-neuron solutions often benefited from later neurons:
+On \texttt{colon\_cancer}, low-feature first-neuron solutions often benefited from later neurons:
 \texttt{cpl} improved from 0.8438 at $n=1$ to 0.8498 at $n=4$, \texttt{svm} from 0.8195 to 0.8512 at $n=3$,
-and \texttt{logreg} from 0.8545 to 0.8657 at $n=4$. In denser regimes, the first neuron more often captured
-most of the predictive signal immediately, although dense \texttt{cpl} still improved from 0.8726 at $n=1$
+and \texttt{logreg} from 0.8545 to 0.8657 at $n=4$. In high-feature regimes, the first neuron more often captured
+most of the predictive signal immediately, although high-feature \texttt{cpl} still improved from 0.8726 at $n=1$
 to 0.8921 at $n=3$. A train-fold balanced-accuracy weighted vote gave similar conclusions and slightly
-improved sparse \texttt{svm} on \texttt{colon\_cancer} (0.8545 at $n=4$). On the synthetic benchmark, sparse
+improved low-feature \texttt{svm} on the colon cancer benchmark (0.8545 at $n=4$). On the synthetic benchmark, low-feature
 configurations of \texttt{cpl}, \texttt{svm}, and \texttt{logreg} reached their best unweighted accuracies at
 $n=12$, $n=11$, and $n=5$, respectively. Ground-truth-aware metrics showed two distinct modes: broad first
 neurons recovered more informative signal at once, whereas narrower first neurons recovered informative
@@ -51,8 +51,7 @@ that combines a realistic microarray benchmark with a diagnostic synthetic bench
 Its main value is methodological: it treats neuron depth as an analyzable model dimension rather than assuming
 that deeper voting must improve monotonically. The results indicate that useful signal is usually concentrated
 in the first few neurons, but the way it is distributed across depth depends strongly on the learner and on
-the sparsity regime. The accompanying repository is structured to support permanent archiving of the exact code
-and data artifacts used in the study.
+the feature-count regime.
 \end{abstract}
 
 \begin{document}
@@ -79,7 +78,7 @@ This work was supported by the grant WZ/WI-IIT/4/2026 from Bialystok University 
 The authors declare there are no competing interests.
 
 \subsection*{Author Contributions}
-Jerzy Krawczuk conceived the study, implemented the experimental pipeline, performed the experiments,
+Jerzy Krawczuk conceived the study, implemented the experimental protocol, performed the experiments,
 analyzed the results, and drafted the manuscript.
 
 \noindent
@@ -90,23 +89,25 @@ and revised the manuscript critically.
 Both authors approved the final draft.
 
 \subsection*{Data Availability}
-The source code, experiment scripts, input datasets, and final manuscript figure assets are available in the
-project repository archived at [DOI to be added before submission].
-The exact colon cancer file used in this study is \texttt{data/colon\_cancer.csv}; it corresponds to the
-Alon et al. (1999) colon cancer microarray benchmark distributed by the Bioconductor \texttt{colonCA}
-experiment data package (DOI: \texttt{10.18129/B9.bioc.colonCA}; LGPL).
+The materials needed to reproduce the analyses, including source code, input datasets, result tables, and
+figure-generation materials, are available in the project repository archived at [DOI to be added before
+submission].
+The colon cancer benchmark used in this study corresponds to the Alon et al. (1999) microarray dataset
+distributed by the Bioconductor \texttt{colonCA} experiment data package (DOI:
+\texttt{10.18129/B9.bioc.colonCA}; LGPL). It is included in the archived repository as the processed
+\texttt{data/colon\_cancer.csv} file used for the experiments; this data file follows the upstream
+\texttt{colonCA} LGPL package license and is not covered by the repository MIT code license.
 
 \subsection*{Supplemental Information}
-Supplemental material for submission should include: (1) the exact source code used for the reported runs,
-(2) machine-readable result tables, and (3) figure source files or scripts where applicable.
+Supplemental material for submission should include the archived analysis materials, machine-readable result
+tables, and figure-generation materials.
 
 \subsection*{Additional Declarations}
 Jerzy Krawczuk used generative AI assistance during manuscript preparation. The AI system was used for
 language editing, restructuring of selected manuscript sections, coding assistance related to the experimental
-pipeline, and preparation of draft figure and table arrangements. All scientific decisions, experimental
+protocol, and preparation of draft figure and table arrangements. All scientific decisions, experimental
 design choices, result interpretation, and final manuscript revisions were made and verified by the authors.
 
-\bibliographystyle{plain}
 \bibliography{references}
 
 \end{document}

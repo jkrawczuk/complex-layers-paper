@@ -64,7 +64,6 @@ def _metadata_from_rows(rows):
     first = rows[0]
     return {
         "dataset": first["dataset"],
-        "omics": first["omics"],
         "model": first["model"],
         "C": first["C"],
         "class_weight": first.get("class_weight", ""),
@@ -79,7 +78,6 @@ def _metadata_from_run_stats(bundle_dir: Path, fallback_rows):
         stats = json.load(f)
     return {
         "dataset": stats.get("dataset", ""),
-        "omics": stats.get("omics", "all"),
         "model": stats.get("base_model", ""),
         "C": stats.get("C", ""),
         "class_weight": stats.get("class_weight", ""),
@@ -255,7 +253,6 @@ def _aggregate_per_split_rows(rows):
 def _write_weighted_per_split(path: Path, rows):
     fieldnames = [
         "dataset",
-        "omics",
         "model",
         "C",
         "class_weight",

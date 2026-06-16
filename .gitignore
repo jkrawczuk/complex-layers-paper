@@ -17,9 +17,11 @@ env/
 .idea/
 .vscode/
 *.swp
+.local-notes/
 
 # Local runtime output
 results/
+zenodo-artifacts/
 
 # LaTeX auxiliary files
 *.aux

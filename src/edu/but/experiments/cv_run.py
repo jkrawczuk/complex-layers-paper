@@ -11,7 +11,6 @@ from edu.but.experiments.cv_io import (
     save_run_stats_json,
     update_run_stats_summary,
     write_neuron_summary_csv,
-    write_per_split_summary_csv,
     write_raw_predictions_csv,
     write_selected_features_csv,
 )
@@ -41,17 +40,6 @@ def build_splitter(cv_folds: int, cv_repeats: int, random_state: int):
     )
 
 
-def _with_split_metadata(row, args, data_path: Path):
-    return {
-        "dataset": data_path.stem,
-        "omics": args.omics or "all",
-        "model": args.base_model,
-        "C": args.C,
-        "class_weight": args.class_weight,
-        **row,
-    }
-
-
 def run_cv_predictions(args):
     run_start = time.perf_counter()
     data_path = Path(args.data)
@@ -59,7 +47,6 @@ def run_cv_predictions(args):
         data_path,
         label_first=args.label_first,
         has_header=args.has_header,
-        omics=args.omics,
     )
     ground_truth = load_ground_truth_metadata(data_path)
     if ground_truth is not None:
@@ -71,7 +58,6 @@ def run_cv_predictions(args):
     splitter, total_folds = build_splitter(args.cv_folds, args.cv_repeats, args.random_state)
     out_dir = Path(args.out_dir) if args.out_dir is not None else default_output_bundle_path(
         data_path=data_path,
-        omics=args.omics,
         base_model=args.base_model,
         c_value=args.C,
         n_neurons=args.n_neurons,
@@ -161,7 +147,6 @@ def run_cv_predictions(args):
     stats = {
         "dataset": data_path.stem,
         "data_path": str(data_path),
-        "omics": args.omics or "all",
         "base_model": args.base_model,
         "C": args.C,
         "class_weight": args.class_weight,

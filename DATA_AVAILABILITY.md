@@ -19,6 +19,10 @@ package `colonCA` (DOI: `10.18129/B9.bioc.colonCA`), which lists the package lic
 The local CSV is retained for exact reproducibility of the Python experiments. Treat it as a redistributed data
 artifact under the upstream `colonCA` package license, not under the repository MIT code license.
 
+For archival metadata, state the license separation explicitly: source code is MIT licensed, while
+`data/colon_cancer.csv` is redistributed as a processed form of the Bioconductor `colonCA` dataset under the
+upstream LGPL package license.
+
 ## PeerJ Submission Text Template
 
 Use this only after replacing placeholders:
@@ -28,4 +32,6 @@ Use this only after replacing placeholders:
 > ground-truth informative features are recorded in `data/synthetic_signal.metadata.json`. The colon cancer
 > microarray benchmark corresponds to the Alon et al. (1999) dataset distributed by the Bioconductor `colonCA`
 > experiment data package (DOI: `10.18129/B9.bioc.colonCA`; LGPL) and is included as
-> `data/colon_cancer.csv` in the processed CSV form used for the experiments.
+> `data/colon_cancer.csv` in the processed CSV form used for the experiments. The repository source code is
+> MIT licensed; `data/colon_cancer.csv` is redistributed under the upstream `colonCA` LGPL package license,
+> not under the repository MIT license.

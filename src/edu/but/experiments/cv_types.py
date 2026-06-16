@@ -6,7 +6,6 @@ import numpy as np
 @dataclass(frozen=True)
 class RunConfig:
     dataset: str
-    omics: str
     base_model: str
     C: float
     n_neurons: int
@@ -25,4 +24,3 @@ class SplitTask:
     train_idx: np.ndarray
     test_idx: np.ndarray
     run_cfg: RunConfig
-

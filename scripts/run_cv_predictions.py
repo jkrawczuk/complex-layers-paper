@@ -16,11 +16,10 @@ def parse_args():
     parser.add_argument("--data", type=Path, default=Path("data/colon_cancer.csv"))
     parser.add_argument("--label-first", action="store_true")
     parser.add_argument("--has-header", action="store_true")
-    parser.add_argument("--omics", type=str, default=None)
     parser.add_argument("--n-neurons", type=int, default=31)
     parser.add_argument(
         "--base-model",
-        choices=["logreg", "svm", "cpl", "cpl_lp", "cpl_sgd"],
+        choices=["logreg", "svm", "cpl"],
         default="cpl",
     )
     parser.add_argument("--C", type=float, default=1.0)

@@ -19,20 +19,16 @@ def format_c_value(c_value: float) -> str:
 
 def default_output_bundle_path(
     data_path: Path,
-    omics: str,
     base_model: str,
     c_value: float,
     n_neurons: int,
     class_weight: str = "balanced",
 ) -> Path:
     dataset_name = data_path.stem
-    omics_name = "all" if not omics else omics.replace(",", "-")
     c_name = f"C{format_c_value(c_value)}"
     model_name = f"{base_model}_n{n_neurons}"
     base = Path("results") / dataset_name
-    if omics_name != "all":
-        base = base / omics_name
-    if base_model == "cpl_lp":
+    if base_model == "cpl":
         return base / model_name / class_weight / c_name
     return base / model_name / c_name
 
@@ -193,7 +189,6 @@ def write_results_csv(csv_path: Path, results):
 def write_per_split_metrics_csv(csv_path: Path, rows):
     fieldnames = [
         "dataset",
-        "omics",
         "model",
         "C",
         "class_weight",
@@ -255,7 +250,6 @@ def write_per_split_metrics_csv(csv_path: Path, rows):
 def write_per_split_summary_csv(csv_path: Path, rows):
     fieldnames = [
         "dataset",
-        "omics",
         "model",
         "C",
         "class_weight",
@@ -363,7 +357,6 @@ def update_run_stats_summary(dataset_name: str):
         rows.append(
             {
                 "dataset": data.get("dataset", dataset_name),
-                "omic": data.get("omics", "all"),
                 "model": data.get("base_model", ""),
                 "C": data.get("C", ""),
                 "n_neurons_requested": data.get("n_neurons_requested", ""),
@@ -386,7 +379,6 @@ def update_run_stats_summary(dataset_name: str):
             f,
             fieldnames=[
                 "dataset",
-                "omic",
                 "model",
                 "C",
                 "n_neurons_requested",

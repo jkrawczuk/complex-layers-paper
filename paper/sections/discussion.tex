@@ -3,20 +3,20 @@
 The final experiments support a narrower and more defensible interpretation of complex layers than a simple
 claim that voting should monotonically improve classification.
 Across both datasets, the most useful information was typically concentrated in the first few neurons, but
-the exact pattern depended on the base learner and on the sparsity regime induced by regularization.
+the exact pattern depended on the base learner and on the feature-count regime induced by regularization.
 
-The real-data benchmark showed that later neurons can be useful when the first neuron is strongly sparse.
-Under sparse settings on \texttt{colon\_cancer}, all three learners exhibited at least one configuration in
+The real-data benchmark showed that later neurons can be useful when the first neuron contains few features.
+Under low-feature settings on \texttt{colon\_cancer}, all three learners exhibited at least one configuration in
 which the best mean accuracy appeared after the first neuron.
 This suggests that sequential feature removal can expose complementary predictive structure that is not
-captured by the initial sparse solution alone.
-In contrast, denser first-neuron solutions often concentrated most of the predictive signal immediately,
+captured by the initial low-feature solution alone.
+In contrast, high-feature first-neuron solutions often concentrated most of the predictive signal immediately,
 leaving little room for later neurons to improve performance.
 
 The synthetic benchmark clarifies why these regimes differ.
-When the first neuron is broad, as in dense \texttt{logreg}, it can recover a large fraction of the true
+When the first neuron is broad, as in high-feature \texttt{logreg}, it can recover a large fraction of the true
 signal at once, but later neurons contribute little additional information.
-When the first neuron is narrower, as in sparse \texttt{cpl} or \texttt{svm}, recovery of informative
+When the first neuron is narrower, as in low-feature \texttt{cpl} or \texttt{svm}, recovery of informative
 features is more gradual, and meaningful gains may emerge only after several neurons.
 This makes neuron depth a useful analytical dimension for studying how a learner decomposes signal, rather
 than merely an aggregation mechanism.
@@ -40,7 +40,7 @@ Key limitations remain.
 \item \texttt{colon\_cancer} is a small and classical microarray dataset, so its statistical variability is
 high.
 \item The synthetic benchmark is informative because it provides ground truth, but its conclusions remain
-conditional on the chosen block-structured data-generation process.
+conditional on the chosen latent-source data-generation process.
 \item Regularization values were calibrated to obtain comparable first-neuron widths, not to equalize the
 effective penalty across models; direct numerical comparison of $C$ between learners is therefore not
 meaningful.

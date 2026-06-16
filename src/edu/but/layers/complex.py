@@ -2,52 +2,14 @@ from typing import Optional, List
 import numpy as np
 
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.linear_model import LogisticRegression, SGDClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import hinge_loss, log_loss
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.validation import check_X_y, check_array
 from sklearn.exceptions import NotFittedError
 
-from edu.but.cpl.classifiers import SekwemClassifier as CPL
 from edu.but.cpl.cpl_lp import CPL_LP
-
-
-class _CPLWrapper:
-    def __init__(self, C: float, verbose: int = 0):
-        self.C = C
-        self.verbose = verbose
-        self.model_ = None
-
-    def fit(self, X, y, sample_weight=None):
-        if hasattr(X, "toarray"):
-            X = X.toarray()
-        y_enc = np.asarray(y)
-        c_value = self.C if self.C and self.C > 0 else "auto"
-        self.model_ = CPL(C=c_value)
-        self.model_.fit(X, y_enc, sample_weight=sample_weight, verbose=self.verbose)
-        raw_objective = getattr(self.model_, "final_objective_", None)
-        self.scalar_objective_ = float(raw_objective) if raw_objective is not None else None
-        self.coef_ = np.asarray(self.model_.coef_).reshape(1, -1)
-        self.intercept_ = np.asarray([self.model_.intercept_])
-        # Use common objective semantics and shape: (sum_i xi_i, ||w||_1).
-        scores = np.asarray(self.model_.decision_function(X)).reshape(-1)
-        pos_label = self.model_.classes_[1]
-        y_pm = np.where(y_enc == pos_label, 1.0, -1.0)
-        xi_sum = float(np.maximum(0.0, 1.0 - y_pm * scores).sum())
-        l1_norm = float(np.abs(self.model_.coef_).sum())
-        self.final_objective_ = (xi_sum, l1_norm)
-        return self
-
-    def decision_function(self, X):
-        if hasattr(X, "toarray"):
-            X = X.toarray()
-        return self.model_.decision_function(X)
-
-    def predict(self, X):
-        if hasattr(X, "toarray"):
-            X = X.toarray()
-        return self.model_.predict(X).astype(int)
 
 
 class _CPLLPWrapper:
@@ -100,12 +62,10 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
     ---------
     n_neurons : int
         Maksymalna liczba neuronów (L).
-    base_model : {"logreg", "svm", "cpl", "cpl_lp", "cpl_sgd"}
+    base_model : {"logreg", "svm", "cpl"}
         "logreg" -> LogisticRegression z L1,
         "svm"    -> LinearSVC z L1,
-        "cpl"    -> CPL (hinge loss + L1).
-        "cpl_lp" -> L1-regularized LP SVM.
-        "cpl_sgd" -> SGDClassifier (hinge + L1), skalowalny dla sparse.
+        "cpl"    -> convex piecewise-linear neuron solved by LP.
     C : float
         Parametr regularyzacji C dla neuronów.
     class_weight_mode : {"balanced", "uniform"}
@@ -160,29 +120,11 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
                 max_iter=self.max_iter,
                 random_state=self.random_state,
             )
-        elif self.base_model == "cpl_sgd":
-            if self.C and self.C > 0:
-                denom = float(np.sqrt(n_samples or 1) * self.C)
-                alpha = 1.0 / denom
-            else:
-                alpha = 1.0
-            return SGDClassifier(
-                loss="hinge",
-                penalty="l1",
-                alpha=alpha,
-                max_iter=self.max_iter,
-                random_state=self.random_state,
-            )
         elif self.base_model == "cpl":
-            return _CPLWrapper(
-                C=self.C,
-                verbose=False #self.verbose,
-            )
-        elif self.base_model == "cpl_lp":
             return _CPLLPWrapper(C=self.C, class_weight_mode=self.class_weight_mode)
         else:
             raise ValueError(
-                f"Unknown base_model='{self.base_model}' (use 'logreg', 'svm', 'cpl', 'cpl_lp', or 'cpl_sgd')."
+                f"Unknown base_model='{self.base_model}' (use 'logreg', 'svm', or 'cpl')."
             )
 
     def _build_sample_weight(self, y_enc: np.ndarray) -> np.ndarray:
@@ -215,7 +157,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
             loss = float(log_loss(y_enc, proba, labels=[0, 1]))
             return (loss, l1_norm)
 
-        if self.base_model in ("svm", "cpl_sgd"):
+        if self.base_model == "svm":
             scores = np.asarray(base_clf.decision_function(X_sub)).reshape(-1)
             y_pm = np.where(y_enc == 1, 1, -1)
             loss = float(hinge_loss(y_pm, scores, labels=[-1, 1]))
@@ -290,11 +232,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
             if common_objective is not None:
                 base_clf.common_objective_ = common_objective
 
-            # SGD with L1 often keeps many numerically tiny coefficients;
-            # apply a stronger cutoff to keep feature selection meaningfully sparse.
             coef_threshold = self.zero_threshold
-            if self.base_model == "cpl_sgd":
-                coef_threshold = max(coef_threshold, 1e-4)
             used_mask = np.any(np.abs(coef) > coef_threshold, axis=0)
 
             if not np.any(used_mask):
