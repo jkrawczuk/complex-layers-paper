@@ -87,6 +87,7 @@ def run_cv_predictions(args):
                     "random_state": args.random_state,
                     "verbose": args.verbose,
                     "ground_truth": ground_truth,
+                    "standardize_features": args.standardize_features,
                 },
             }
         )
@@ -150,6 +151,7 @@ def run_cv_predictions(args):
         "base_model": args.base_model,
         "C": args.C,
         "class_weight": args.class_weight,
+        "standardize_features": bool(args.standardize_features),
         "n_neurons_requested": args.n_neurons,
         "n_neurons_built": max_built,
         "cv_folds": args.cv_folds,

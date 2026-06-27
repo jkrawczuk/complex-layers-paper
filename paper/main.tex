@@ -1,15 +1,16 @@
 %% PeerJ manuscript skeleton based on the official Overleaf template.
 %% Note: wlpeerj.cls should be present in this directory (download from template source).
 \documentclass[fleqn,10pt,lineno]{wlpeerj}
-\usepackage{url}
+\usepackage{xurl}
+\usepackage{placeins}
 \urlstyle{same}
 
-\title{Complex Layers of Sparse Formal Neurons for High-Dimensional Classification}
+\title{Complex layers of sparse formal neurons for high-dimensional classification}
 
 \author[1]{Jerzy Krawczuk}
 \author[2]{Leon Bobrowski}
-\affil[1]{Faculty of Computer Science, Bialystok University of Technology, Wiejska 45A, Bialystok, Poland}
-\affil[2]{Institute of Biocybernetics and Biomedical Engineering, PAS, Warsaw, Poland}
+\affil[1]{Faculty of Computer Science, Bialystok University of Technology, Bialystok, Podlaskie Voivodeship, Poland}
+\affil[2]{Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences, Warsaw, Masovian Voivodeship, Poland}
 \corrauthor[1]{Jerzy Krawczuk}{j.krawczuk@pb.edu.pl}
 
 % Keywords can be provided in the submission system metadata.
@@ -17,43 +18,39 @@
 \begin{abstract}
 \textbf{Background.}
 High-dimensional gene-expression datasets remain difficult classification benchmarks because they combine
-very small sample sizes with thousands of correlated features. Sparse linear models are attractive in this
-setting because they can preserve interpretability, but their predictive behavior may depend strongly on
-the way sparsity is imposed and on how successive feature subsets are constructed. This study examines the
-behavior of successive sparse neurons in a complex-layer construction, with emphasis on how signal, sparsity,
-and noise evolve across neuron depth.
+very small sample sizes with thousands of correlated features. Sparse linear models can preserve
+interpretability, but their predictive behavior depends on how sparsity is imposed and how successive feature
+subsets are constructed. This study examines successive sparse formal neurons in a complex-layer construction,
+focusing on how signal, sparsity, and noise evolve across neuron depth.
 
 \textbf{Methods.}
-We study two complementary benchmarks. The first is the classical colon cancer microarray dataset
-containing 62 samples, 2,000 features, and two diagnostic classes. The second is a synthetic binary dataset
-with known informative features, redundant correlated features, and noise features, together with an explicit
-ranking of informative-feature strengths. Three linear learners are evaluated within the same complex-layer
-protocol: \texttt{cpl} (convex piecewise-linear; hinge loss with L1 regularization), \texttt{svm}
-(squared hinge loss with L1 regularization), and \texttt{logreg} (logistic loss with L1 regularization).
-In each layer, one sparse neuron is trained and the
-features selected by that neuron are removed before fitting the next one. Performance is assessed using
-repeated stratified cross-validation. For each neuron depth, we report predictive accuracy, sparsity,
-weighted voting, and---for the synthetic benchmark---feature-recovery analysis.
+We study two complementary benchmarks: a classical colon cancer microarray dataset with 62 samples, 2,000
+features, and two diagnostic classes, and a synthetic binary dataset with known informative and noise
+features. Three linear learners are evaluated within the same complex-layer protocol: \texttt{cpl}
+(convex piecewise-linear; hinge loss with L1 regularization), \texttt{svm} (squared hinge loss with L1
+regularization), and \texttt{logreg} (logistic loss with L1 regularization). In each layer, one sparse neuron is
+trained and its selected features are removed before fitting the next neuron. Performance is assessed using
+repeated stratified cross-validation. We summarize predictive accuracy, selected-feature counts, weighted voting
+and, for the synthetic benchmark, feature recovery across neuron depth.
 
 \textbf{Results.}
-On \texttt{colon\_cancer}, low-feature first-neuron solutions often benefited from later neurons:
-\texttt{cpl} improved from 0.8438 at $n=1$ to 0.8498 at $n=4$, \texttt{svm} from 0.8195 to 0.8512 at $n=3$,
-and \texttt{logreg} from 0.8545 to 0.8657 at $n=4$. In high-feature regimes, the first neuron more often captured
-most of the predictive signal immediately, although high-feature \texttt{cpl} still improved from 0.8726 at $n=1$
-to 0.8921 at $n=3$. A train-fold balanced-accuracy weighted vote gave similar conclusions and slightly
-improved low-feature \texttt{svm} on the colon cancer benchmark (0.8545 at $n=4$). On the synthetic benchmark, low-feature
+On colon cancer, low-feature first-neuron solutions often benefited from later neurons: \texttt{cpl} improved
+from 0.7690 at $n=1$ to 0.7710 at $n=4$, and \texttt{svm} from 0.8538 to 0.8545 at $n=3$; low-feature
+\texttt{logreg} reached its best value at the first neuron. In high-feature regimes, \texttt{cpl} and
+\texttt{svm} improved over the first few neurons, whereas high-feature \texttt{logreg} reached 0.8667 at
+$n=1$ and did not improve with depth.
+A train-fold balanced-accuracy weighted vote gave similar conclusions and slightly improved low-feature
+\texttt{logreg} on the synthetic benchmark (0.7678 at $n=2$). On the synthetic benchmark, low-feature
 configurations of \texttt{cpl}, \texttt{svm}, and \texttt{logreg} reached their best unweighted accuracies at
-$n=12$, $n=11$, and $n=5$, respectively. Ground-truth-aware metrics showed two distinct modes: broad first
-neurons recovered more informative signal at once, whereas narrower first neurons recovered informative
-structure more gradually across successive neurons.
+$n=3$, $n=3$, and $n=2$, respectively. Ground-truth-aware metrics showed two modes: high-feature first
+neurons recovered more informative signal at once, whereas lower-feature configurations distributed recovery
+across successive neurons.
 
 \textbf{Conclusions.}
-This study provides a reproducible benchmarking protocol for layered sparse linear classifiers
-that combines a realistic microarray benchmark with a diagnostic synthetic benchmark of known signal structure.
-Its main value is methodological: it treats neuron depth as an analyzable model dimension rather than assuming
-that deeper voting must improve monotonically. The results indicate that useful signal is usually concentrated
-in the first few neurons, but the way it is distributed across depth depends strongly on the learner and on
-the feature-count regime.
+The results indicate that useful signal is usually concentrated in the first few sparse neurons, but its
+distribution across depth depends on the learner and feature-count regime. The complex-layer protocol therefore
+provides a reproducible way to analyze layered sparse linear classifiers without assuming that deeper voting
+improves monotonically.
 \end{abstract}
 
 \begin{document}
@@ -67,10 +64,16 @@ the feature-count regime.
 \input{sections/discussion}
 \input{sections/conclusion}
 
-\section*{Acknowledgements}
+\section*{Acknowledgments}
 This article is the outcome of collaboration developed during Jerzy Krawczuk's research internship at the
 Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences, under the supervision of
 Professor Leon Bobrowski.
+OpenAI ChatGPT and OpenAI Codex (\url{https://chatgpt.com/}; OpenAI, GPT-5-based service available in June
+2026) were used during manuscript and artifact preparation for language editing, restructuring selected
+manuscript passages, assisting with Python and LaTeX code edits, and drafting figure/table arrangement
+changes. These tools were not used to generate the experimental datasets or to make autonomous scientific
+decisions. All experimental design choices, code changes, results, interpretations, and final manuscript text
+were reviewed and verified by the authors.
 
 \section*{Additional Information and Declarations}
 \subsection*{Funding}
@@ -91,24 +94,18 @@ and revised the manuscript critically.
 Both authors approved the final draft.
 
 \subsection*{Data Availability}
-The materials needed to reproduce the analyses, including source code, input datasets, result tables, and
-figure-generation materials, are available in the project repository archived at
-\url{https://doi.org/10.5281/zenodo.20712674}.
+The materials needed to reproduce the analyses, including source code, input datasets, and figure-generation
+materials, are available in the project repository at
+\url{https://github.com/jkrawczuk/complex-layers-paper}.
 The colon cancer benchmark used in this study corresponds to the Alon et al. (1999) microarray dataset
 distributed by the Bioconductor \texttt{colonCA} experiment data package (DOI:
-\url{https://doi.org/10.18129/B9.bioc.colonCA}; LGPL). It is included in the archived repository as the processed
-\texttt{data/colon\_cancer.csv} file used for the experiments; this data file follows the upstream
-\texttt{colonCA} LGPL package license and is not covered by the repository MIT code license.
+\url{https://doi.org/10.18129/B9.bioc.colonCA}; LGPL). It is included in the repository as
+\texttt{data/colon\_cancer.csv}; this data file follows the upstream \texttt{colonCA} LGPL package license and
+is not covered by the repository MIT code license.
 
 \subsection*{Supplemental Information}
-Supplemental material for submission includes the archived analysis materials, machine-readable result tables,
-and figure-generation materials.
-
-\subsection*{Additional Declarations}
-Jerzy Krawczuk used generative AI assistance during manuscript preparation. The AI system was used for
-language editing, restructuring of selected manuscript sections, coding assistance related to the experimental
-protocol, and preparation of draft figure and table arrangements. All scientific decisions, experimental
-design choices, result interpretation, and final manuscript revisions were made and verified by the authors.
+Supplemental material for submission includes the analysis materials and figure-generation materials available
+through the project repository.
 
 \bibliography{references}
 

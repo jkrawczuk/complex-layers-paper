@@ -4,15 +4,17 @@ from scipy.optimize import linprog
 class CPL_LP:
     """
     L1-regularized linear SVM (soft-margin) jako programowanie liniowe (LP):
-        min  sum_i xi_i + lambda * sum_j u_j
+        min  C * sum_i sample_weight_i * xi_i + sum_j u_j
         s.t. y_i (w^T x_i + b) >= 1 - xi_i
              xi_i >= 0
              -u_j <= w_j <= u_j,  u_j >= 0
     Zmienna optymalizacyjna: z = [w (n), b (1), xi (m), u (n)]
     """
 
-    def __init__(self, lambda_=1.0, class_weight_mode: str = "balanced"):
-        self.lambda_ = float(lambda_)
+    def __init__(self, C=1.0, class_weight_mode: str = "balanced"):
+        self.C = float(C)
+        if self.C <= 0:
+            raise ValueError("C must be positive.")
         self.class_weight_mode = class_weight_mode
 
     def _encode_labels(self, y):
@@ -69,10 +71,10 @@ class CPL_LP:
         idx_u = slice(n + 1 + m, n + 1 + m + n)
         N = n + 1 + m + n  # 2n + m + 1
 
-        # Funkcja celu: sum_i sample_weight_i * xi_i + lambda * sum(u)
+        # Funkcja celu: C * sum_i sample_weight_i * xi_i + sum(u)
         c = np.zeros(N)
-        c[idx_xi] = sample_weight
-        c[idx_u] = self.lambda_
+        c[idx_xi] = self.C * sample_weight
+        c[idx_u] = 1.0
 
         A_ub = []
         b_ub = []
@@ -125,8 +127,7 @@ class CPL_LP:
         self.classes_ = classes
         self.loss_ = float(np.sum(self.sample_weight_ * self.xi_))
         self.l1_norm_raw_ = float(np.sum(self.u_))
-        # Keep the same objective decomposition as CPL: (loss, lambda * L1).
-        self.l1_norm_ = float(self.lambda_ * self.l1_norm_raw_)
+        self.l1_norm_ = self.l1_norm_raw_
         self.final_objective_ = (self.loss_, self.l1_norm_)
         self.F = res.fun
         return self
@@ -142,7 +143,7 @@ class CPL_LP:
 
 # --- przykład użycia ---
 # X, y = ...  # X: (m,n), y: w {0,1} albo {-1,1}
-# clf = L1LinearSVM_LP(C=1.0).fit(X, y)
+# clf = CPL_LP(C=1.0).fit(X, y)
 # y_pred = clf.predict(X)
 # scores = clf.decision_function(X)
 # w, b = clf.w_, clf.b_

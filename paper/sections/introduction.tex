@@ -10,28 +10,29 @@ This work focuses on two complementary benchmarks. The first is the colon cancer
 one of the canonical benchmarks in bioinformatics and machine learning for high-dimensional classification
 \cite{alon1999,guyon2002,dudoit2002,li2004}. It originates from the colon tumor vs.\ normal tissue profiling
 study published in 1999 \cite{alon1999}. Across more than two decades, this benchmark has been repeatedly used
-to evaluate feature selection, sparse linear models, and stability of classification under strong
-$p \gg n$ conditions \cite{guyon2002,dudoit2002,li2004}. In comparative studies, this benchmark
+to evaluate feature selection, sparse linear models, and stability of classification when the number of
+measured features is much larger than the number of samples \cite{guyon2002,dudoit2002,li2004}. In comparative
+studies, this benchmark
 typically yields high-80\% to mid-90\% accuracy ranges depending on validation protocol and feature-selection
 strategy \cite{guyon2002,dudoit2002,li2004}.
 
 The second benchmark is synthetic and is introduced for a different purpose. Real biological datasets provide
 realistic distributional complexity, but they do not reveal the true predictive contribution of each feature.
 As a consequence, they are suitable for measuring predictive performance and sparsity, but not for directly
-measuring whether a method recovers the genuinely informative variables before drifting toward redundant or
-purely noisy ones. This distinction is particularly important in high-dimensional gene-expression studies,
+measuring whether a method recovers the genuinely informative variables before drifting toward purely noisy
+ones. This distinction is particularly important in high-dimensional gene-expression studies,
 where feature selection and classifier evaluation can become confounded by selection bias if the protocol is
 not carefully separated across training and test data \cite{ambroise2002,krawczuk2016feature}. To address
-this limitation, we add a synthetic binary benchmark with known informative
-features, controlled redundant features, and a predefined ranking of informative-feature strengths.
+this limitation, we add a synthetic binary benchmark with known informative features, independent noise
+features, and a predefined ranking of informative-feature strengths.
 This perspective is also aligned with recent work emphasizing that feature-selection stability should be
 treated as an important evaluation dimension in high-dimensional classification, not merely as a secondary
 diagnostic after predictive accuracy \cite{lukaszuk2024importance}.
 
 We compare three methods under the same protocol:
 \texttt{cpl}, \texttt{svm}, and \texttt{logreg}. Here, \texttt{cpl} denotes the convex piecewise-linear
-formulation used for the custom sparse neuron: the hinge-loss objective with L1 regularization is convex and
-piecewise linear, which allows the neuron to be trained through linear programming. In contrast,
+base learner: its hinge-loss objective with L1 regularization is convex and piecewise linear, which allows each
+sparse neuron to be trained through linear programming. In contrast,
 \texttt{svm} denotes the squared-hinge-loss linear SVM with L1 regularization, and \texttt{logreg} denotes
 the corresponding L1-regularized logistic-regression base learner.
 The goal is to assess how predictive performance, sparsity,
@@ -43,12 +44,12 @@ L1-regularized logistic models and large-scale linear classifiers \cite{friedman
 Rather than assuming that aggregating many neurons must monotonically improve classification, we study a more
 basic and more informative question: what does each next neuron contribute? In particular, we ask how much
 predictive signal is captured by the first neurons, when later neurons still add complementary information, and
-when they become dominated by redundant or noisy features.
+when they become dominated by noisy features.
 
 Main contributions:
 \begin{enumerate}[noitemsep]
 \item A unified complex-layer framework evaluated with three linear sparse learners.
 \item A repeated cross-validation benchmark on the classical colon cancer microarray dataset.
 \item A synthetic benchmark with known feature relevance and known ranking of signal strengths.
-\item Reproducible reporting of neuron-by-neuron accuracy, sparsity, weighted voting, and feature recovery.
+\item Neuron-by-neuron analysis of accuracy, sparsity, weighted voting, and feature recovery.
 \end{enumerate}

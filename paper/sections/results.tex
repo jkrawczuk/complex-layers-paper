@@ -1,206 +1,197 @@
 \section*{Results}
 
-\subsection*{Evaluation scope}
-The final evaluation uses two datasets, three base learners, and two feature-count regimes per learner.
-For each dataset, \texttt{cpl}, \texttt{svm}, and \texttt{logreg} were calibrated separately to obtain
-approximately low-feature and high-feature first-neuron solutions. All results are based on repeated stratified
-cross-validation with 10 folds and 10 repeats, with a maximum depth of 31 neurons.
-The tables should be read primarily as within-learner trajectory summaries rather than as a strict leaderboard
-between base learners, because the realized first-neuron width is not identical across models.
-
-\begin{table}[ht]
-\centering
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{llrrrr}
-\toprule
-Model & Regime & Features at $n=1$ & Best $n$ & Best accuracy & Built neurons \\
-\midrule
-\texttt{cpl} & $C_{\mathrm{low}}$ & 4.28 & 4 & 0.8498 & 11 \\
-\texttt{svm} & $C_{\mathrm{low}}$ & 4.83 & 3 & 0.8512 & 28 \\
-\texttt{logreg} & $C_{\mathrm{low}}$ & 6.67 & 4 & 0.8657 & 8 \\
-\midrule
-\texttt{cpl} & $C_{\mathrm{high}}$ & 21.33 & 3 & 0.8921 & 31 \\
-\texttt{svm} & $C_{\mathrm{high}}$ & 24.72 & 1 & 0.8769 & 31 \\
-\texttt{logreg} & $C_{\mathrm{high}}$ & 30.59 & 1 & 0.8726 & 15 \\
-\bottomrule
-\end{tabular}
-\caption{Summary of the repeated-CV results on the colon cancer benchmark. The table reports the average width of
-the first neuron, the neuron depth at which the best mean vote accuracy was achieved, the corresponding mean
-accuracy, and the realized number of neurons.}
-\label{tab:colon_summary}
-\end{table}
-
-\subsection*{Colon cancer benchmark}
-On the colon cancer benchmark, the low-feature regime often benefited from the first few successive neurons.
-For \texttt{cpl} with $C_{\mathrm{low}}$, the mean vote accuracy increased from 0.8438 for the first neuron to
-0.8498 at $n=4$, while the average number of features per neuron remained close to four
-(4.28, 4.59, 4.05, and 3.51 for $n=1,\dots,4$).
-For \texttt{svm} with $C_{\mathrm{low}}$, accuracy increased from 0.8195 at $n=1$ to 0.8512 at $n=3$, with the
-average neuron width growing from 4.83 to 8.01 features.
-For \texttt{logreg} with $C_{\mathrm{low}}$, the best result also appeared after several neurons rather than at the
-first one, increasing from 0.8545 at $n=1$ to 0.8657 at $n=4$.
-
-The high-feature regime produced a different pattern.
-For \texttt{svm} and \texttt{logreg} with $C_{\mathrm{high}}$, the best mean accuracy was already achieved
-by the first neuron (0.8769 and 0.8726, respectively), and additional neurons did not improve the model.
-In these settings, the first neuron was substantially wider, selecting on average 24.72 features for
-\texttt{svm} and 30.59 features for \texttt{logreg}; later neurons became even broader.
-The main exception was \texttt{cpl} with $C_{\mathrm{high}}$, where the mean vote accuracy improved from 0.8726 at
-$n=1$ to 0.8921 at $n=3$, while the neuron width increased from 21.33 to 25.57 features.
-
-The weighted vote based on training-fold balanced accuracy did not materially change the qualitative pattern of
-the colon cancer results. It matched the best unweighted result for high-feature \texttt{cpl}
-(0.8921 at $n=3$), high-feature \texttt{svm} (0.8769 at $n=1$), and high-feature \texttt{logreg} (0.8726 at $n=1$).
-The clearest gain was observed for low-feature \texttt{svm}, where the weighted vote reached 0.8545 at $n=4$,
-compared with the best unweighted value of 0.8512 at $n=3$. In contrast, low-feature \texttt{logreg} decreased
-from an unweighted best of 0.8657 at $n=4$ to a weighted-vote best of 0.8574 at $n=3$.
-
-Taken together, the colon cancer results indicate that useful complementary signal often appears in
-the first two to four neurons in the low-feature regime, whereas high-feature first-neuron solutions more often
-concentrate the available predictive signal immediately.
-
-\begin{figure}[ht]
-\centering
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/colon_cancer/cpl_c0p03_accuracy.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/colon_cancer/svm_c1p2_accuracy.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/colon_cancer/logreg_c3p5_accuracy.png}
-\end{minipage}
-
-\vspace{0.5em}
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/colon_cancer/cpl_c0p03_features_nth_neuron.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/colon_cancer/svm_c1p2_features_nth_neuron.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/colon_cancer/logreg_c3p5_features_nth_neuron.png}
-\end{minipage}
-
-\caption{Low-feature regime trajectories on the colon cancer benchmark. Top row: mean accuracy trajectories for
-uniform vote, training-quality weighted vote, and the individual $n$-th neuron. Bottom row: average number
-of features selected by the $n$-th neuron. From left to right:
-\texttt{cpl}, \texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$.}
-\label{fig:colon_sparse_panels}
-\end{figure}
-
-\subsection*{Synthetic benchmark with known ground truth}
-The synthetic benchmark makes it possible to distinguish predictive performance from true signal recovery.
-Here, the most informative observation is that different learners distribute ground-truth signal across depth
-in qualitatively different ways.
+The tables below summarize within-learner trajectories rather than a strict leaderboard between base learners,
+because the calibrated first-neuron widths are similar but not identical across models.
 
 \begin{table}[ht]
 \centering
 \small
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{llrrrrr}
+\begin{tabular}{llrr@{\hspace{1.8em}}rr@{\hspace{1.8em}}r}
 \toprule
-Model & Regime & Features at $n=1$ & Best $n$ & Best accuracy & Precision at $n=1$ & Cum. recall at $n=5$ \\
+Model & Regime & \multicolumn{2}{c@{\hspace{1.8em}}}{$n=1$} & \multicolumn{2}{c@{\hspace{1.8em}}}{Best $n$} & Built \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & & Features & Accuracy & $n$ & Accuracy & neurons \\
 \midrule
-\texttt{cpl} & $C_{\mathrm{low}}$ & 4.04 & 12 & 0.8500 & 0.3268 & 0.4525 \\
-\texttt{svm} & $C_{\mathrm{low}}$ & 6.89 & 11 & 0.8417 & 0.1881 & 0.6325 \\
-\texttt{logreg} & $C_{\mathrm{low}}$ & 8.22 & 5 & 0.8500 & 0.3521 & 0.4306 \\
+\texttt{cpl} & $C_{\mathrm{low}}$ & 4.43 & 0.7690 & 4 & 0.7710 & 13 \\
+\texttt{svm} & $C_{\mathrm{low}}$ & 5.73 & 0.8538 & 3 & 0.8545 & 30 \\
+\texttt{logreg} & $C_{\mathrm{low}}$ & 3.82 & 0.8524 & 1 & 0.8524 & 3 \\
 \midrule
-\texttt{cpl} & $C_{\mathrm{high}}$ & 20.82 & 13 & 0.8200 & 0.0771 & 0.6792 \\
-\texttt{svm} & $C_{\mathrm{high}}$ & 26.84 & 3 & 0.8360 & 0.0680 & 0.8367 \\
-\texttt{logreg} & $C_{\mathrm{high}}$ & 28.09 & 1 & 0.8150 & 0.2033 & 0.7264 \\
+\texttt{cpl} & $C_{\mathrm{high}}$ & 23.42 & 0.8245 & 4 & 0.8493 & 31 \\
+\texttt{svm} & $C_{\mathrm{high}}$ & 21.54 & 0.8326 & 3 & 0.8514 & 31 \\
+\texttt{logreg} & $C_{\mathrm{high}}$ & 23.89 & 0.8667 & 1 & 0.8667 & 8 \\
 \bottomrule
 \end{tabular}
-\caption{Summary of the repeated-CV results on the synthetic benchmark. In addition to predictive performance,
-the table reports first-neuron feature precision and cumulative informative-feature recall after five neurons.}
-\label{tab:synthetic_summary}
+\caption{Summary of the repeated-CV results on the colon cancer benchmark. The table reports the average width and
+mean vote accuracy of the first neuron, the neuron depth at which the best mean vote accuracy was achieved,
+the corresponding mean accuracy, and the realized number of neurons.}
+\label{tab:colon_summary}
+\end{table}
+
+\subsection*{Colon cancer benchmark}
+On the colon cancer benchmark, the low-feature regime showed learner-specific behavior across the first few
+successive neurons.
+For \texttt{cpl} with $C_{\mathrm{low}}$, the mean vote accuracy increased from 0.7690 for the first neuron to
+0.7710 at $n=4$, while the average first-neuron width was 4.43 features.
+For \texttt{svm} with $C_{\mathrm{low}}$, accuracy increased slightly from 0.8538 at $n=1$ to 0.8545 at $n=3$.
+For \texttt{logreg} with $C_{\mathrm{low}}$, the best mean vote accuracy was already obtained by the first neuron
+(0.8524), and only three neurons were built before the feature space was exhausted under this setting.
+
+The high-feature regime produced a different pattern.
+For \texttt{cpl} with $C_{\mathrm{high}}$, the mean vote accuracy improved from 0.8245 at $n=1$ to 0.8493 at
+$n=4$.
+For \texttt{svm} with $C_{\mathrm{high}}$, accuracy increased from 0.8326 at $n=1$ to 0.8514 at $n=3$.
+In contrast, \texttt{logreg} with $C_{\mathrm{high}}$ achieved the highest colon cancer accuracy in this
+evaluation at the first neuron (0.8667), and additional neurons did not improve the vote.
+
+The weighted vote based on training-fold balanced accuracy did not materially change the qualitative pattern of
+the colon cancer results. It matched the best unweighted result for low-feature \texttt{svm}
+(0.8545 at $n=3$), low-feature \texttt{logreg} (0.8524 at $n=1$), high-feature \texttt{svm} (0.8514 at $n=3$),
+and high-feature \texttt{logreg} (0.8667 at $n=1$).
+For \texttt{cpl}, the weighted vote was very close to the unweighted vote, reaching 0.7698 at $n=4$ in the
+low-feature regime and 0.8481 at $n=4$ in the high-feature regime.
+
+Taken together, the colon cancer results indicate that useful complementary signal often appears in
+the first few neurons, but the benefit of depth depends strongly on the base learner and feature-count regime.
+The trajectory figures therefore focus on the low-feature regime, where neuron depth is most informative and
+successive neurons have the clearest opportunity to add complementary signal. High-feature regimes are summarized
+in Table~\ref{tab:colon_summary} and discussed in the text as a contrasting case.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/paper_panels/colon_diagnostics_panel.png}
+\caption{Low-feature diagnostic trajectories on the colon cancer benchmark. Columns show \texttt{cpl},
+\texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$. Rows report predictive accuracy, the average number
+of features selected by the $n$-th neuron, the number of CV splits in which that neuron depth was available,
+and optimization diagnostics for the $n$-th neuron. Training loss and L1 norm are divided by their
+within-model maximum values and should be interpreted as shape summaries rather than absolute-scale comparisons.}
+\label{fig:colon_sparse_accuracy}
+\end{figure}
+
+\FloatBarrier
+
+\subsection*{Synthetic predictive performance}
+The synthetic benchmark first mirrors the colon cancer evaluation by comparing predictive trajectories across
+learners and feature-count regimes. Its known ground truth is used separately below to analyze feature recovery.
+
+\begin{table}[ht]
+\centering
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{llrr@{\hspace{1.8em}}rr@{\hspace{1.8em}}r}
+\toprule
+Model & Regime & \multicolumn{2}{c@{\hspace{1.8em}}}{$n=1$} & \multicolumn{2}{c@{\hspace{1.8em}}}{Best $n$} & Built \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & & Features & Accuracy & $n$ & Accuracy & neurons \\
+\midrule
+\texttt{cpl} & $C_{\mathrm{low}}$ & 5.03 & 0.8180 & 3 & 0.8430 & 8 \\
+\texttt{svm} & $C_{\mathrm{low}}$ & 6.42 & 0.8250 & 3 & 0.8500 & 8 \\
+\texttt{logreg} & $C_{\mathrm{low}}$ & 3.44 & 0.6950 & 2 & 0.7424 & 3 \\
+\midrule
+\texttt{cpl} & $C_{\mathrm{high}}$ & 25.94 & 0.8160 & 3 & 0.8480 & 10 \\
+\texttt{svm} & $C_{\mathrm{high}}$ & 25.32 & 0.8400 & 4 & 0.8490 & 13 \\
+\texttt{logreg} & $C_{\mathrm{high}}$ & 27.58 & 0.8590 & 1 & 0.8590 & 7 \\
+\bottomrule
+\end{tabular}
+\caption{Summary of the repeated-CV predictive results on the synthetic benchmark. The table follows the same
+format as Table~\ref{tab:colon_summary}, reporting first-neuron width and accuracy, the best mean vote accuracy
+and its depth, and the realized number of neurons.}
+\label{tab:synthetic_performance}
 \end{table}
 
 In the low-feature regime, later neurons frequently improved predictive performance.
-For \texttt{cpl} with $C_{\mathrm{low}}$, accuracy increased from 0.7990 at $n=1$ to 0.8500 at $n=12$, while
-the first neuron selected only 4.04 features on average.
-For \texttt{svm} with $C_{\mathrm{low}}$, the best mean vote accuracy was 0.8417 at $n=11$, compared with 0.8200 at
+For \texttt{cpl} with $C_{\mathrm{low}}$, accuracy increased from 0.8180 at $n=1$ to 0.8430 at $n=3$, while
+the first neuron selected 5.03 features on average.
+For \texttt{svm} with $C_{\mathrm{low}}$, the best mean vote accuracy was 0.8500 at $n=3$, compared with 0.8250 at
 $n=1$.
-The first neuron selected 6.89 features on average.
-For \texttt{logreg} with $C_{\mathrm{low}}$, the best result occurred at $n=5$, improving from 0.7710 at $n=1$ to
-0.8500 at $n=5$. The feature-recovery columns in Table~\ref{tab:synthetic_summary} show that these predictive
-gains did not correspond to identical recovery patterns across the three learners.
+The first neuron selected 6.42 features on average.
+For \texttt{logreg} with $C_{\mathrm{low}}$, the best result occurred at $n=2$, improving from 0.6950 at $n=1$ to
+0.7424 at $n=2$.
 
 In the high-feature regime, the first neuron often captured a larger fraction of the true signal, but additional
 neurons contributed less useful information.
 This was clearest for \texttt{logreg} with $C_{\mathrm{high}}$, where the first neuron already achieved the best mean
-accuracy of 0.8150 and selected 28.09 features on average.
-However, later neurons added almost no new informative signal, and performance gradually declined.
-For \texttt{svm} with $C_{\mathrm{high}}$, the first neuron was much less precise, but cumulative informative-feature
-recall increased strongly across the first five neurons.
-For \texttt{cpl} with $C_{\mathrm{high}}$, cumulative informative-feature recall increased from 0.1325 at $n=1$ to
-0.4825 at $n=3$ and 0.6792 at $n=5$, but at the cost of broad neurons containing many non-informative
-features.
+accuracy of 0.8590 and selected 27.58 features on average.
+For \texttt{svm} with $C_{\mathrm{high}}$, the best mean accuracy was 0.8490 at $n=4$.
+For \texttt{cpl} with $C_{\mathrm{high}}$, the best mean accuracy was 0.8480 at $n=3$.
 
 Weighted voting again gave a more nuanced picture than a uniform improvement.
 When only depths available in all 100 cross-validation splits were considered, the weighted vote reached the
-same best accuracy as the unweighted vote for high-feature \texttt{svm} (0.8360 at $n=3$) and high-feature
-\texttt{logreg} (0.8150 at $n=1$). It did not improve the best accuracy of low-feature \texttt{cpl},
-low-feature \texttt{svm}, or low-feature \texttt{logreg}.
-Some later synthetic depths produced higher weighted-vote values after many splits had already terminated
-(for example low-feature \texttt{logreg} at $n=5$), but these estimates were based on reduced coverage and are
-therefore treated as diagnostic rather than primary performance estimates.
+same best accuracy as the unweighted vote for high-feature \texttt{logreg} (0.8590 at $n=1$), and a very similar
+value for high-feature \texttt{svm} (0.8420 at $n=3$ versus an unweighted best of 0.8490 at $n=4$).
+It did not improve the best accuracy of low-feature \texttt{cpl} or low-feature \texttt{svm}.
+The clearest weighted-vote gain appeared for low-feature \texttt{logreg}, where the
+weighted vote reached 0.7678 at $n=2$ compared with the unweighted value of 0.7424.
 
-These synthetic results separate two modes of behavior.
-Some models, especially high-feature \texttt{logreg}, concentrate a large fraction of the ground-truth signal in
-the first neuron.
-Other configurations, including low-feature \texttt{cpl} and \texttt{svm}, recover informative structure more
-gradually across successive neurons.
+As for the colon cancer benchmark, the trajectory figures focus on the low-feature regime, where successive
+neurons are most diagnostic of how predictive performance changes across depth. High-feature behavior is reported
+in Table~\ref{tab:synthetic_performance} and in the text above.
 
-\begin{figure}[ht]
+\begin{figure}[!htbp]
 \centering
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/synthetic_signal/cpl_c0p035_accuracy.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/synthetic_signal/svm_c2_accuracy.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/synthetic_signal/logreg_c5_accuracy.png}
-\end{minipage}
-
-\vspace{0.5em}
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/synthetic_signal/cpl_c0p035_feature_recovery.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/synthetic_signal/svm_c2_feature_recovery.png}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.32\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/synthetic_signal/logreg_c5_feature_recovery.png}
-\end{minipage}
-
-\caption{Low-feature regime trajectories on the synthetic benchmark. Top row: mean accuracy trajectories for
-uniform vote, training-quality weighted vote, and the individual $n$-th neuron. Bottom row:
-ground-truth-aware feature-recovery plots. From left to right: \texttt{cpl}, \texttt{svm}, and
-\texttt{logreg} with $C_{\mathrm{low}}$.}
-\label{fig:synthetic_sparse_panels}
+\includegraphics[width=\linewidth]{figures/paper_panels/synthetic_diagnostics_panel.png}
+\caption{Low-feature diagnostic trajectories on the synthetic benchmark. Columns show \texttt{cpl},
+\texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$. Rows report predictive accuracy, the average number
+of features selected by the $n$-th neuron, the number of CV splits in which that neuron depth was available,
+and optimization diagnostics for the $n$-th neuron. Training loss and L1 norm are divided by their
+within-model maximum values and should be interpreted as shape summaries rather than absolute-scale comparisons.}
+\label{fig:synthetic_sparse_accuracy}
 \end{figure}
+
+\FloatBarrier
+
+\subsection*{Synthetic feature recovery}
+The known informative-feature set in the synthetic benchmark makes it possible to ask whether predictive gains
+come from recovering true signal or from selecting broader sets of noisy features.
+
+\begin{table}[ht]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llrr@{\hspace{1.8em}}rrr}
+\toprule
+Model & Regime & \multicolumn{2}{c@{\hspace{1.8em}}}{$n=1$} & \multicolumn{3}{c}{Cumulative at Best $n$} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-7}
+ & & Precision & Recall & $n$ & Precision & Recall \\
+\midrule
+\texttt{cpl} & $C_{\mathrm{low}}$ & 0.6497 & 0.2617 & 3 & 0.6923 & 0.6475 \\
+\texttt{svm} & $C_{\mathrm{low}}$ & 0.6425 & 0.3367 & 3 & 0.4114 & 0.6908 \\
+\texttt{logreg} & $C_{\mathrm{low}}$ & 1.0000 & 0.2867 & 2 & 1.0000 & 0.3686 \\
+\midrule
+\texttt{cpl} & $C_{\mathrm{high}}$ & 0.1880 & 0.4033 & 3 & 0.1413 & 0.7767 \\
+\texttt{svm} & $C_{\mathrm{high}}$ & 0.2040 & 0.4267 & 4 & 0.0788 & 0.9167 \\
+\texttt{logreg} & $C_{\mathrm{high}}$ & 0.3167 & 0.7217 & 1 & 0.3167 & 0.7217 \\
+\bottomrule
+\end{tabular}
+\caption{Informative-feature recovery on the synthetic benchmark. The $n=1$ columns report precision and recall
+for the first neuron alone. The cumulative columns are computed over all features selected up to the
+best-accuracy depth reported in Table~\ref{tab:synthetic_performance}.}
+\label{tab:synthetic_recovery_summary}
+\end{table}
+
+These recovery summaries separate two modes of behavior.
+Some models, especially high-feature \texttt{logreg}, concentrate much of the ground-truth signal in the first
+neuron. Other configurations, including low-feature \texttt{cpl} and \texttt{svm}, recover informative structure
+more gradually across successive neurons before later neurons become dominated by noise features.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\linewidth]{figures/paper_panels/synthetic_recovery_panel.png}
+\caption{Feature-recovery trajectories for the low-feature synthetic benchmark. Columns show \texttt{cpl},
+\texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$; rows report cumulative informative-feature recall,
+per-neuron informative and noise fractions, and the numbers of informative and noise features selected by the
+$n$-th neuron. Blue trajectories describe informative features and red trajectories describe noise features.}
+\label{fig:synthetic_sparse_recovery}
+\end{figure}
+
+\FloatBarrier
 
 \subsection*{Built depth as a model property}
 The nominal maximum depth was 31 neurons, but the realized depth depended strongly on the learner and
 regularization.
-On the colon cancer benchmark, the realized depth ranged from 8 neurons for low-feature \texttt{logreg} to 31 neurons
+On the colon cancer benchmark, the realized depth ranged from 3 neurons for low-feature \texttt{logreg} to 31 neurons
 for high-feature \texttt{cpl} and high-feature \texttt{svm}.
-On the synthetic benchmark, realized depth was markedly smaller, ranging from 5 neurons for low-feature
-\texttt{logreg} to 16 neurons for high-feature \texttt{svm}.
+On the synthetic benchmark, realized depth was markedly smaller, ranging from 3 neurons for low-feature
+\texttt{logreg} to 13 neurons for high-feature \texttt{svm}.
 This supports the view that neuron depth is not only a reporting axis but also an empirical signature of how
 aggressively each base learner exhausts the remaining feature space.

@@ -8,6 +8,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+PLOT_DPI = 180
+PLOT_FIGSIZE = (9.6, 6.4)
+
+plt.rcParams.update(
+    {
+        "font.size": 15,
+        "axes.titlesize": 16,
+        "axes.labelsize": 15,
+        "xtick.labelsize": 13,
+        "ytick.labelsize": 13,
+        "legend.fontsize": 12,
+        "figure.titlesize": 17,
+    }
+)
+
+
 def _set_sparse_xticks(ax, x_vals):
     if not x_vals:
         return
@@ -55,13 +71,13 @@ def save_accuracy_plot(results, out_path: Path, weighted_results=None):
         fig, (ax, ax_cov) = plt.subplots(
             2,
             1,
-            figsize=(8, 6.2),
-            dpi=140,
+            figsize=PLOT_FIGSIZE,
+            dpi=PLOT_DPI,
             sharex=True,
             gridspec_kw={"height_ratios": [3.0, 1.0]},
         )
     else:
-        fig, ax = plt.subplots(figsize=(8, 5), dpi=140)
+        fig, ax = plt.subplots(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
         ax_cov = None
     vote_lo, vote_hi = _ci95_bounds(vote, vote_std, coverage, low_clip=0.0, high_clip=1.0)
     neuron_lo, neuron_hi = _ci95_bounds(neuron, neuron_std, coverage, low_clip=0.0, high_clip=1.0)
@@ -138,7 +154,7 @@ def save_loss_l1_plot(results, out_path: Path):
     l1 = [r["l1_norm"] for r in results]
     l1_std = [r["l1_norm_std"] for r in results]
 
-    fig, ax_loss = plt.subplots(figsize=(8, 5), dpi=140)
+    fig, ax_loss = plt.subplots(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     ax_l1 = ax_loss.twinx()
 
     loss_line = ax_loss.plot(x, loss, marker="o", linewidth=2.0, color="#2ca02c", label="loss")[0]
@@ -179,7 +195,7 @@ def save_features_plot(results, out_path: Path):
     features = [r["features"] for r in results]
     features_std = [r["features_std"] for r in results]
 
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=140)
+    fig, ax = plt.subplots(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     ax.plot(
         x,
         features,
@@ -226,7 +242,7 @@ def save_available_features_plot(per_split_rows, n_total_features: int, out_path
     y_mean = [float(np.mean(remaining_by_n[n])) for n in x]
     y_std = [float(np.std(remaining_by_n[n])) for n in x]
 
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=140)
+    fig, ax = plt.subplots(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     ax.plot(
         x,
         y_mean,
@@ -268,7 +284,7 @@ def save_train_test_gap_plot(results, out_path: Path):
     train_lo, train_hi = _ci95_bounds(neuron_train, neuron_train_std, coverage, low_clip=0.0, high_clip=1.0)
     test_lo, test_hi = _ci95_bounds(neuron_test, neuron_test_std, coverage, low_clip=0.0, high_clip=1.0)
 
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=140)
+    fig, ax = plt.subplots(figsize=PLOT_FIGSIZE, dpi=PLOT_DPI)
     ax.plot(
         x,
         neuron_train,
@@ -337,7 +353,7 @@ def save_minority_metrics_plot(results, out_path: Path):
         ),
     ]
 
-    fig, axes = plt.subplots(len(metric_specs), 1, figsize=(8, 11), dpi=140, sharex=True)
+    fig, axes = plt.subplots(len(metric_specs), 1, figsize=(9.6, 12.4), dpi=PLOT_DPI, sharex=True)
     colors = {"vote": "#1f77b4", "neuron": "#d62728"}
 
     for ax, (ylabel, vote_key, vote_std_key, neuron_key, neuron_std_key) in zip(axes, metric_specs):
@@ -376,7 +392,7 @@ def save_precision_recall_trajectory_plot(results, out_path: Path):
     neuron_recall = np.asarray([r["neuron_minority_recall"] for r in results], dtype=float)
     k_vals = np.asarray([r["n_neurons"] for r in results], dtype=float)
 
-    fig, axes = plt.subplots(1, 2, figsize=(11, 5), dpi=140, sharex=True, sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(11.5, 5.8), dpi=PLOT_DPI, sharex=True, sharey=True)
     cmap = plt.get_cmap("viridis")
 
     panels = [
@@ -427,7 +443,7 @@ def save_feature_recovery_plot(results, out_path: Path):
     if not all(v is not None for v in coverage):
         coverage = [1 for _ in x]
 
-    fig, axes = plt.subplots(3, 1, figsize=(8, 10), dpi=140, sharex=True)
+    fig, axes = plt.subplots(3, 1, figsize=(9.6, 11.4), dpi=PLOT_DPI, sharex=True)
     panels = [
         (
             axes[0],

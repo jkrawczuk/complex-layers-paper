@@ -1,4 +1,4 @@
-\section*{Conclusion}
+\section*{Conclusions}
 
 We provide a reproducible comparative protocol for layered sparse linear classifiers on a real microarray
 benchmark and a synthetic benchmark with known signal structure. Under repeated cross-validation, the three
@@ -7,3 +7,16 @@ predictive behavior across neuron depths and training-quality weighted voting, b
 they recover truly informative features and how rapidly later neurons become noise-dominated. The presented
 protocol supports transparent, repeatable comparisons in which neuron depth is treated as an object of
 analysis, not merely as a route to a final voted classifier.
+
+The implemented model type is deliberately sparse and linear. This choice is justified by the small-sample,
+high-dimensional setting: sparse formal neurons keep the selected feature sets inspectable, while the
+complex-layer construction makes it possible to study whether successive sparse neurons expose complementary
+signal after earlier selected features are removed. The comparison with sparse \texttt{svm} and
+\texttt{logreg} baselines shows that this behavior depends on the loss function and the induced feature-count
+regime, not only on the voting mechanism.
+
+The main limitations are the small size of the real microarray benchmark, the controlled but necessarily
+simplified synthetic data-generation process, and the use of calibrated analysis regimes rather than nested
+hyperparameter selection. Future work should repeat the protocol on additional high-dimensional biological
+datasets, study the stability of neuron-wise selected features, and develop stopping rules for identifying
+when later neurons have become primarily noise-driven.

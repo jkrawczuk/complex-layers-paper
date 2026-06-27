@@ -1,4 +1,4 @@
-\section*{Methods}
+\section*{Materials \& Methods}
 
 \subsection*{Dataset}
 We use two datasets: one real benchmark and one synthetic benchmark.
@@ -6,6 +6,11 @@ We use two datasets: one real benchmark and one synthetic benchmark.
 \subsubsection*{Real-data benchmark: colon cancer}
 We use the colon cancer dataset, originally introduced by \cite{alon1999}. It is a gene-expression
 microarray benchmark built from colon tumor and normal tissue samples.
+The tabular data used in this study are a CSV export of the expression matrix distributed by the Bioconductor
+\texttt{colonCA} experiment data package, available through Bioconductor at
+\url{https://bioconductor.org/packages/release/data/experiment/html/colonCA.html} and identified by DOI
+\url{https://doi.org/10.18129/B9.bioc.colonCA}. The archived repository includes this CSV as the input table
+used by the Python experiments.
 In the commonly used machine-learning representation, the data matrix contains:
 \begin{itemize}[noitemsep]
 \item 62 objects (samples),
@@ -17,15 +22,14 @@ The dataset originates from the Alon et al. colon adenocarcinoma study published
 and has since become a long-standing reference problem for sparse learning and feature selection in
 bioinformatics, with representative comparative results in \cite{guyon2002,dudoit2002,li2004}.
 
-\subsubsection*{Synthetic benchmark with known signal strength}
+\subsubsection*{Synthetic benchmark with known informative features}
 To assess feature recovery directly, we additionally generate a synthetic binary classification dataset with
 a known ground-truth definition. The synthetic benchmark is designed to separate predictive performance
 from feature-discovery quality.
 
-The guiding idea is simple. The benchmark should contain a small set of truly informative variables, a larger
-set of variables that are correlated with the true signal but are not themselves primary signal variables, and
-many unrelated noise variables. This lets us ask whether later neurons recover new informative signal or only
-move toward redundant and noisy features.
+The guiding idea is simple. The benchmark should contain a small set of truly informative variables and many
+unrelated noise variables. This lets us ask whether later neurons recover new informative signal or mainly move
+toward noise.
 
 The final synthetic dataset used in this study has:
 \begin{itemize}[noitemsep]
@@ -33,28 +37,22 @@ The final synthetic dataset used in this study has:
 \item 2,000 features in total,
 \item balanced classes: 50 negative and 50 positive samples,
 \item 12 informative features,
-\item 36 redundant features,
-\item 1,952 noise features.
+\item 1,988 noise features.
 \end{itemize}
 
 The construction is based on three latent signal sources. For each sample $i$ and source
 $b \in \{1,2,3\}$, a latent value $z_{ib}$ is drawn from a standard normal distribution. The three sources have
-decreasing strengths
-\[
-s=(1.2,\;0.9,\;0.6),
-\]
-so source 1 is strongest and source 3 is weakest. The class score is generated directly from these latent
-signals:
+decreasing strengths $s=(1.2,\;0.9,\;0.6)$, so source 1 is strongest and source 3 is weakest. The class score
+is generated directly from these latent signals:
 \[
 r_i=\sum_{b=1}^{3}s_b z_{ib}+\eta_i,
 \]
 where $\eta_i$ is Gaussian label noise with scale 0.55. The score is thresholded at its median, yielding
 exactly 50 negative and 50 positive samples.
 
-Each latent source is then represented in the observed feature matrix by four truly informative features and
-twelve correlated redundant features. Thus, the observed signal-related part of the feature matrix has
-$3\times4=12$ informative features and $3\times12=36$ redundant features; the remaining 1,952 features are
-independent noise. Informative features are indexed first, followed by redundant features, and finally by noise
+Each latent source is then represented in the observed feature matrix by four truly informative features.
+Thus, the observed signal-related part of the feature matrix has $3\times4=12$ informative features; the
+remaining 1,988 features are independent noise. Informative features are indexed first, followed by noise
 features.
 
 For an informative feature $j$ assigned to source $b$, the observed value is a noisy measurement of the
@@ -63,28 +61,27 @@ corresponding latent source:
 x_{ij}=w_j z_{ib}+\epsilon_{ij}.
 \]
 The feature noise is Gaussian with scale 0.2. The informative weights decrease in absolute value within each
-signal source and alternate in sign. Thus, informative features have a known order of importance both across
-signal sources and within each source, while the benchmark does not reduce to selecting only positively
-correlated variables. The exact informative-feature weights and feature-index mapping are fixed by the
-benchmark definition.
+signal source and alternate in sign, so the informative variables are not all positively correlated with the
+class label.
 
-Redundant features are also assigned to one signal source. Each redundant feature is generated as a correlated
-surrogate of one informative feature from that source and also receives a smaller contribution from the same
-latent value $z_{ib}$. The redundant-feature noise scale is 0.3. These variables can be
-predictive because they are correlated with the signal, but they are not counted as truly informative in the
-ground truth.
+Class labels are generated from the three latent signal sources, not from all 2,000 observed features. The
+generated CSV stores the raw feature values rather than globally standardized values. Because the benchmark
+fixes the indices of the 12 informative features, it allows us to evaluate both predictive accuracy and the
+number of ground-truth informative features recovered by each neuron and by the cumulative sequence of neurons.
 
-Class labels are therefore generated from the three latent signal sources, not from all 2,000 observed features. This
-preserves a known latent signal structure while allowing the observed feature matrix to contain informative,
-redundant, and purely noisy variables.
+\subsubsection*{Data preprocessing}
+For the colon cancer benchmark, the input matrix was used as exported from the Bioconductor
+\texttt{colonCA} package. No additional gene filtering or imputation was applied. Within each
+cross-validation split, feature columns were standardized by subtracting the training-fold mean and dividing by
+the training-fold standard deviation; the same transformation was then applied to the held-out fold. Class
+labels were encoded internally by the classifier implementation for binary learning, while the feature columns
+and row order of the archived CSV were kept fixed throughout the experiments.
 
-After generation, all feature columns are standardized by z-scoring. As a result, feature variances are on a
-common scale, but the effective signal-to-noise ratios remain different across informative, redundant, and
-noise features.
-
-The benchmark definition specifies the exact indices of informative, redundant, and noise features. This makes it
-possible to evaluate not only predictive accuracy, but also how many of the 12 ground-truth informative
-features are recovered by each neuron and by the cumulative sequence of neurons.
+For the synthetic benchmark, the same split-wise standardization was applied: feature means and standard
+deviations were estimated on each training fold and then applied to the corresponding held-out fold. The same
+repeated stratified cross-validation protocol was therefore applied to both benchmarks. Feature selection,
+neuron fitting, voting-weight estimation, and all metric calculations were performed within the training/test
+split structure; held-out test labels were not used during training or feature selection.
 
 \subsection*{Model family}
 The core model is a complex-layer classifier that sequentially trains sparse linear neurons and removes selected
@@ -93,38 +90,36 @@ features after each neuron. This construction follows the Complex Layers of Form
 right. For each depth, we inspect both the prediction of the $n$-th neuron itself and the cumulative prediction
 obtained by majority voting over the first $n$ neurons.
 
-The label \texttt{cpl} refers to the convex piecewise-linear base learner used in this study. Its
-objective combines hinge loss with L1 regularization; both terms are convex piecewise-linear, so the resulting
-sparse linear neuron can be trained as a linear programming problem. It is evaluated inside the same
-complex-layer protocol as two standard sparse linear baselines:
-\begin{itemize}[noitemsep]
-\item \texttt{cpl}: convex piecewise-linear neuron trained with an LP-based hinge + L1 formulation.
-\item \texttt{svm}: LinearSVC (squared hinge loss + L1 regularization).
-\item \texttt{logreg}: logistic regression with L1 regularization.
-\end{itemize}
+The label \texttt{cpl} refers to the convex piecewise-linear base learner used in this study. It is evaluated
+inside the same complex-layer protocol as two standard sparse linear baselines: \texttt{svm}, a squared-hinge
+linear SVM, and \texttt{logreg}, an L1-regularized logistic-regression learner.
 The use of L1-type regularization is motivated by its long-standing role in sparse estimation and feature
 selection for high-dimensional problems \cite{tibshirani1996lasso,ng2004l1l2}. For logistic regression, the
 computational perspective is closely related to regularization-path methods such as \texttt{glmnet}
 \cite{friedman2010glmnet}, while the practical large-scale linear classification setting is represented by
 \texttt{LIBLINEAR} \cite{fan2008liblinear}.
+These techniques were selected because they share the same sparse linear model class and therefore allow a
+controlled comparison of neuron depth under different convex loss functions and optimization formulations:
+LP-based hinge loss for \texttt{cpl}, squared hinge loss for \texttt{svm}, and logistic loss for
+\texttt{logreg}.
 
-\subsection*{Evaluation protocol}
-For both benchmarks, we use repeated stratified cross-validation with a fixed random seed.
-Both benchmarks reported in this manuscript use 10 folds and 10 repeats, giving 100 train/test splits for
-each dataset and model configuration.
-The split-wise protocol is important in this setting because feature selection bias is a well-known failure
-mode in high-dimensional gene-expression studies when selection and evaluation are not strictly separated
-\cite{ambroise2002,krawczuk2016feature}.
-
-\subsection*{Computational environment}
-All experiments were implemented in Python and are distributed with the manuscript repository. The submitted
-artifact specifies Python 3.13 or 3.14 with Poetry-managed dependencies; the final local verification used
-Python 3.14.3 and Poetry 2.3.2. Package versions are pinned in \texttt{poetry.lock}, including
-\texttt{numpy}, \texttt{scipy}, \texttt{scikit-learn}, \texttt{pandas}, and \texttt{matplotlib}. The paper-scale
-runs were executed on a MacBook Air (Apple M2, 2022; 16 GB RAM) running macOS Tahoe 26.5.1, and each run
-records wall-clock time and peak resident memory in its \texttt{run\_stats.json} metadata. The repository
-scripts are the authoritative workflow for regenerating raw predictions, metric tables, and figures from the
-input datasets.
+For binary labels $y_i \in \{-1,+1\}$ and linear score $f(x_i)=w^\top x_i + b$, let $N$ be the number of
+training samples in the current fold, $p$ the number of currently available features, and
+$\lVert w\rVert_1=\sum_{j=1}^{p}|w_j|$. With larger $C$ corresponding to weaker effective regularization, the
+fitted neurons minimize:
+\[
+\begin{aligned}
+\texttt{cpl}:&\quad \min_{w,b}\ \lVert w\rVert_1
+    + C\,\frac{1}{N}\sum_{i=1}^{N}\max\!\left(0,\,1-y_i f(x_i)\right),\\
+\texttt{svm}:&\quad \min_{w,b}\ \lVert w\rVert_1
+    + C\,\frac{1}{N}\sum_{i=1}^{N}\max\!\left(0,\,1-y_i f(x_i)\right)^2,\\
+\texttt{logreg}:&\quad \min_{w,b}\ \lVert w\rVert_1
+    + C\,\frac{1}{N}\sum_{i=1}^{N}\log\!\left(1+\exp(-y_i f(x_i))\right).
+\end{aligned}
+\]
+For \texttt{cpl}, both the hinge-loss term and the L1 term are piecewise linear, so the sparse neuron can be
+trained as a linear programming problem. In the diagnostic plots below, ``training loss'' denotes the empirical
+loss term in these objectives, while ``L1 norm'' denotes $\lVert w\rVert_1$.
 
 \subsection*{Regularization calibration}
 Because the three base learners use different optimization schemes and induce sparsity at different rates,
@@ -152,12 +147,12 @@ the induced first-neuron width from the raw numerical value of the regularizatio
 \toprule
 Dataset & Model & $C_{\mathrm{low}}$ & Features & $C_{\mathrm{high}}$ & Features \\
 \midrule
-Colon cancer & \texttt{cpl} & 0.03 & 6 & 0.08 & 24 \\
-Colon cancer & \texttt{svm} & 1.2 & 5 & 6.0 & 25 \\
-Colon cancer & \texttt{logreg} & 3.5 & 6 & 6.4 & 26 \\
-Synthetic benchmark & \texttt{cpl} & 0.035 & 4 & 0.05 & 27 \\
-Synthetic benchmark & \texttt{svm} & 2.0 & 6 & 3.5 & 26 \\
-Synthetic benchmark & \texttt{logreg} & 5.0 & 7 & 9.2 & 25 \\
+Colon cancer & \texttt{cpl} & 2.0 & 6 & 8.0 & 25 \\
+Colon cancer & \texttt{svm} & 1.3 & 6 & 5.2 & 25 \\
+Colon cancer & \texttt{logreg} & 3.4 & 5 & 5.2 & 25 \\
+Synthetic benchmark & \texttt{cpl} & 3.2 & 5 & 4.6 & 25 \\
+Synthetic benchmark & \texttt{svm} & 2.0 & 6 & 3.4 & 25 \\
+Synthetic benchmark & \texttt{logreg} & 4.0 & 4 & 10.0 & 23 \\
 \bottomrule
 \end{tabular}
 \caption{Calibration of regularization strength by first-neuron feature count. For each dataset and model, the
@@ -168,7 +163,15 @@ high-feature regimes before repeated cross-validation.}
 \label{tab:regularization_calibration}
 \end{table}
 
-For each split:
+\subsection*{Evaluation protocol}
+For both benchmarks, we use repeated stratified cross-validation with a fixed random seed.
+Both benchmarks reported in this manuscript use 10 folds and 10 repeats, giving 100 train/test splits for
+each dataset and model configuration.
+The split-wise protocol is important in this setting because feature selection bias is a well-known failure
+mode in high-dimensional gene-expression studies when selection and evaluation are not strictly separated
+\cite{ambroise2002,krawczuk2016feature}.
+
+Within each train/test split, the complex-layer procedure is applied as follows:
 \begin{enumerate}[noitemsep]
 \item The model is trained only on the training fold.
 \item A sequence of up to 31 neurons is fitted.
@@ -177,7 +180,7 @@ for subsequent neurons.
 \item Predictions are computed on the held-out test fold.
 \end{enumerate}
 
-For each split and neuron depth $n$:
+For each split and neuron depth $n$, we evaluate three predictive summaries:
 \begin{itemize}[noitemsep]
 \item \textbf{vote prediction}: majority vote over the first $n$ neurons;
 \item \textbf{weighted vote prediction}: vote over the first $n$ neurons with weights estimated only from the
@@ -196,36 +199,26 @@ If all $q_j$ are zero, uniform weights are used. The chance-level offset of 0.5 
 above-chance balanced accuracy contribute zero weight. Because all weights are computed on the training fold,
 this procedure does not use held-out labels.
 
-Then, for each neuron index $n$, metrics are averaged over all 100 splits.
-
-For each neuron depth, we report the mean accuracy of the majority vote, the mean held-out accuracy of the
-training-quality weighted vote, the accuracy of the $n$-th neuron alone, and the mean number of features
-selected by that neuron.
+For each depth $n$, metrics are then averaged over the splits in which that depth was actually available.
+A depth can become unavailable in a split when the sequence stops early because no additional non-zero feature
+set can be produced. We therefore report both the averaged metric values and the number of available CV splits
+supporting each depth. The main summaries are vote accuracy, weighted-vote accuracy, $n$-th-neuron accuracy,
+selected features, training loss, and L1 norm.
 
 For the synthetic benchmark, the known set of 12 informative features also allows feature-recovery analysis.
 Feature precision measures what fraction of the selected features are truly informative, while feature recall
 measures what fraction of the 12 informative features have been recovered. We use both per-neuron and
-cumulative recall to assess whether later neurons add new signal or mainly move toward redundant and noisy
-variables.
+cumulative recall to assess whether later neurons add new signal or mainly move toward noisy variables.
 This emphasis goes beyond pure prediction accuracy and is consistent with prior arguments that feature
 selection quality and stability deserve explicit evaluation in high-dimensional settings
 \cite{saeys2007review,nogueira2018stability,lukaszuk2024importance}.
 
-For binary labels $y_i \in \{-1,+1\}$ and linear score $f(x_i)=w^\top x_i + b$, the objective forms are:
-\[
-\texttt{cpl}: \quad
-\min_{w,b}\ \frac{1}{N}\sum_{i=1}^{N}\max\!\left(0,\,1-y_i f(x_i)\right) + \lambda\lVert w\rVert_1
-\]
-\[
-\texttt{svm}: \quad
-\min_{w,b}\ \frac{1}{N}\sum_{i=1}^{N}\max\!\left(0,\,1-y_i f(x_i)\right)^2 + \lambda\lVert w\rVert_1
-\]
-\[
-\texttt{logreg}: \quad
-\min_{w,b}\ \frac{1}{N}\sum_{i=1}^{N}\log\!\left(1+\exp(-y_i f(x_i))\right) + \lambda\lVert w\rVert_1
-\]
-
-All metrics are reported as mean and standard deviation across splits.
-
-The nominal maximum number of neurons is set to 31; training may stop earlier if no additional non-zero
-feature set can be produced.
+\subsection*{Computational environment}
+All experiments were implemented in Python and are distributed with the manuscript repository. The submitted
+artifact specifies Python 3.13 or 3.14 with Poetry-managed dependencies; the final local verification used
+Python 3.14.3 and Poetry 2.3.2. Package versions are pinned in \texttt{poetry.lock}, including
+\texttt{numpy}, \texttt{scipy}, \texttt{scikit-learn}, \texttt{pandas}, and \texttt{matplotlib}. The paper-scale
+runs were executed on a MacBook Air (Apple M2, 2022; 16 GB RAM) running macOS Tahoe 26.5.1, and each run
+records wall-clock time and peak resident memory in its \texttt{run\_stats.json} metadata. The repository
+scripts are the authoritative workflow for regenerating raw predictions, metric tables, and figures from the
+input datasets.

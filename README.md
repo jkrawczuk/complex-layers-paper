@@ -50,6 +50,7 @@ MPLBACKEND=Agg poetry run python scripts/run_cv_predictions.py \
   --cv-folds 2 \
   --cv-repeats 1 \
   --jobs 1 \
+  --standardize-features \
   --verbose 0 \
   --out-dir results/smoke/three_step_svm
 ```
@@ -83,6 +84,7 @@ MPLBACKEND=Agg poetry run python scripts/run_cv_predictions.py \
   --cv-folds 2 \
   --cv-repeats 1 \
   --jobs 1 \
+  --standardize-features \
   --verbose 0 \
   --out-dir results/smoke/three_step_svm
 ```
@@ -133,29 +135,34 @@ dataset/model/regularization bundle:
 - `synthetic_signal`: `cpl`, `svm`, and `logreg` at the selected regularization values.
 
 Use 10-fold cross-validation repeated 10 times for the paper-scale runs. These runs are computationally
-heavier than the smoke check and may take substantial time; in the archived paper-run bundles, `logreg` was
-the longest-running model. The generated paper-run bundles are not committed to git; they are packaged for
-Zenodo as `complex-layers-paper-runs-v1.0.0.zip`.
+heavier than the smoke check and may take substantial time; in the current full run, high-feature `logreg`
+and high-feature `cpl` were the longest-running configurations. The generated paper-run bundles are not
+committed to git; the current local full-run output is under `results/paper_runs_v2/`.
 
 ## Data
 
 - `data/synthetic_signal.csv` is the synthetic benchmark used in the manuscript.
 - `data/synthetic_signal.metadata.json` records the synthetic-data generation parameters and ground-truth
   informative features.
-- `data/colon_cancer.csv` is the processed colon cancer microarray benchmark used in the manuscript. It is
-  derived from the Alon et al. benchmark distributed by the Bioconductor `colonCA` experiment data package
+- `scripts/generate_synthetic_signal.py` regenerates the synthetic benchmark CSV and metadata from the
+  recorded design.
+- `data/colon_cancer.csv` is the colon cancer microarray benchmark used in the manuscript. It is exported from
+  the Alon et al. benchmark distributed by the Bioconductor `colonCA` experiment data package
   (DOI: `10.18129/B9.bioc.colonCA`; package license: LGPL).
 
+For both datasets, paper runs pass `--standardize-features` so feature scaling is fitted on each training fold
+and applied to the corresponding held-out fold.
+
 Dataset provenance and licensing are tracked in `DATA_LICENSES.md`. The repository MIT license applies to the
-source code only. The file `data/colon_cancer.csv` is redistributed as a processed form of the Bioconductor
-`colonCA` dataset under the upstream LGPL package license, not under the repository MIT license.
+source code only. The file `data/colon_cancer.csv` is redistributed as an export of the Bioconductor `colonCA`
+dataset under the upstream LGPL package license, not under the repository MIT license.
 
 ## Output Bundle Format
 
 Cross-validation runs write a directory containing:
 
-- `results.csv` - aggregate metrics by neuron depth.
-- `per_split_metrics.csv` - per-fold, per-depth metrics.
+- `metrics/results.csv` - aggregate metrics by neuron depth.
+- `metrics/per_split_metrics.csv` - per-fold, per-depth metrics.
 - `run_stats.json` - run configuration, timing, memory, and output paths.
 - `accuracy.png`, `minority_metrics.png`, `precision_recall_trajectory.png` - predictive performance plots.
 - `features_nth_neuron.png`, `available_features_per_neuron.png` - feature-use plots.
@@ -178,7 +185,8 @@ The repository includes `paper/wlpeerj.cls`. Generated LaTeX auxiliary files are
 
 ## Citation
 
-Cite the archived release using DOI `10.5281/zenodo.20712674` or the metadata in `CITATION.cff`.
+For the current review version, cite or reference the project repository:
+`https://github.com/jkrawczuk/complex-layers-paper`.
 
 ## License
 

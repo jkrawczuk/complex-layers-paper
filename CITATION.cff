@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this software or the accompanying experiment artifacts, please cite the archived release."
+message: "If you use this software or the accompanying experiment artifacts, please cite the project repository."
 title: "Complex Layers of Sparse Formal Neurons for High-Dimensional Classification"
 type: software
 authors:
@@ -11,7 +11,6 @@ authors:
     given-names: Leon
     affiliation: Institute of Biocybernetics and Biomedical Engineering, Polish Academy of Sciences
 repository-code: "https://github.com/jkrawczuk/complex-layers-paper"
-doi: 10.5281/zenodo.20712674
 abstract: "Implementation and reproducibility artifacts for experiments with Complex Layers of sparse formal neurons on high-dimensional classification benchmarks."
 keywords:
   - complex layers

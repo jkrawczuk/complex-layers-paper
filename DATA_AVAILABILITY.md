@@ -1,36 +1,41 @@
 # Data Availability
 
 This file records the data artifacts distributed with the repository and the provenance notes needed for
-archival release metadata.
+repository and future archival metadata.
 
 ## Included Data
 
 ### `data/synthetic_signal.csv`
 
-Synthetic binary classification dataset. The accompanying `data/synthetic_signal.metadata.json` records the generation parameters, informative feature
-indices, redundant feature indices, noise feature indices, and feature-strength ranking.
+Synthetic binary classification dataset. The accompanying `data/synthetic_signal.metadata.json` records the
+generation parameters, informative feature indices, noise feature indices, and feature-strength ranking.
+The dataset can be regenerated with `scripts/generate_synthetic_signal.py`.
 
 ### `data/colon_cancer.csv`
 
-Processed colon cancer microarray benchmark used in the manuscript experiments. The dataset corresponds to the
-Alon et al. (1999) colon cancer microarray benchmark and is available through the Bioconductor experiment data
-package `colonCA` (DOI: `10.18129/B9.bioc.colonCA`), which lists the package license as LGPL.
+Colon cancer microarray benchmark used in the manuscript experiments. The dataset corresponds to the Alon et
+al. (1999) colon cancer microarray benchmark and is exported from the version distributed through the
+Bioconductor experiment data package `colonCA` (DOI: `10.18129/B9.bioc.colonCA`), which lists the package
+license as LGPL.
 
-The local CSV is retained for exact reproducibility of the Python experiments. Treat it as a redistributed data
-artifact under the upstream `colonCA` package license, not under the repository MIT code license.
+The local CSV is retained for exact reproducibility of the Python experiments. Treat it as a redistributed
+data artifact under the upstream `colonCA` package license, not under the repository MIT code license.
 
-For archival metadata, state the license separation explicitly: source code is MIT licensed, while
-`data/colon_cancer.csv` is redistributed as a processed form of the Bioconductor `colonCA` dataset under the
-upstream LGPL package license.
+For repository and future archival metadata, state the license separation explicitly: source code is MIT
+licensed, while
+`data/colon_cancer.csv` is redistributed as an export of the Bioconductor `colonCA` dataset under the upstream
+LGPL package license.
 
-## Repository Archive
+## Repository
 
 The source code, experiment scripts, synthetic dataset, final manuscript figure assets, and manuscript source
-are available in this repository and archived on Zenodo under DOI `10.5281/zenodo.20712674`.
+are available in the project repository:
+
+https://github.com/jkrawczuk/complex-layers-paper
 
 The synthetic dataset generation parameters and ground-truth informative features are recorded in
 `data/synthetic_signal.metadata.json`. The colon cancer microarray benchmark corresponds to the Alon et al.
 (1999) dataset distributed by the Bioconductor `colonCA` experiment data package (DOI:
-`10.18129/B9.bioc.colonCA`; LGPL) and is included as `data/colon_cancer.csv` in the processed CSV form used
-for the experiments. The repository source code is MIT licensed; `data/colon_cancer.csv` is redistributed
-under the upstream `colonCA` LGPL package license, not under the repository MIT license.
+`10.18129/B9.bioc.colonCA`; LGPL) and is included as `data/colon_cancer.csv` in the CSV form used for the
+experiments. The repository source code is MIT licensed; `data/colon_cancer.csv` is redistributed under the
+upstream `colonCA` LGPL package license, not under the repository MIT license.

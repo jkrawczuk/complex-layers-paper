@@ -29,6 +29,11 @@ def parse_args():
         default="balanced",
     )
     parser.add_argument("--random-state", type=int, default=42)
+    parser.add_argument(
+        "--standardize-features",
+        action="store_true",
+        help="Standardize feature columns within each CV split using training-fold statistics.",
+    )
     parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--cv-folds", type=int, default=10)
     parser.add_argument("--cv-repeats", type=int, default=1)

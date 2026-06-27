@@ -61,6 +61,13 @@ def init_worker(X, y):
     _PAR_Y = y
 
 
+def standardize_train_test(X_train, X_test):
+    mean = X_train.mean(axis=0)
+    scale = X_train.std(axis=0, ddof=1)
+    scale = np.where(scale == 0.0, 1.0, scale)
+    return (X_train - mean) / scale, (X_test - mean) / scale
+
+
 def run_single_split(task):
     split_idx = task["split_idx"]
     repeat_idx = task["repeat_idx"]
@@ -75,6 +82,11 @@ def run_single_split(task):
         raise RuntimeError("Worker data not initialized.")
 
     fit_start = time.perf_counter()
+    X_train = X[train_idx]
+    X_test = X[test_idx]
+    if cfg.get("standardize_features", False):
+        X_train, X_test = standardize_train_test(X_train, X_test)
+
     clf = ComplexL1NeuronsClassifier(
         n_neurons=cfg["n_neurons"],
         base_model=cfg["base_model"],
@@ -84,11 +96,11 @@ def run_single_split(task):
         random_state=cfg["random_state"],
         verbose=cfg["verbose"],
     )
-    clf.fit(X[train_idx], y[train_idx])
+    clf.fit(X_train, y[train_idx])
     fit_time_sec = float(time.perf_counter() - fit_start)
 
-    P_test = clf.vote_matrix(X[test_idx])
-    P_train = clf.vote_matrix(X[train_idx])
+    P_test = clf.vote_matrix(X_test)
+    P_train = clf.vote_matrix(X_train)
     built_n = int(P_test.shape[1])
     counts_full = [len(g) for g in clf.get_feature_groups()]
     feature_groups_full = [np.asarray(g, dtype=int) for g in clf.get_feature_groups()]

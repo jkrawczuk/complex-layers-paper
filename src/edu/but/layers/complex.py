@@ -22,12 +22,7 @@ class _CPLLPWrapper:
         if hasattr(X, "toarray"):
             X = X.toarray()
         y_enc = np.asarray(y)
-        n_samples = max(1, int(X.shape[0]))
-        if self.C is None or self.C <= 0:
-            self.p_lambda = 0.0005 / n_samples
-        else:
-            self.p_lambda = 1.0 / (self.C * n_samples)
-        self.model_ = CPL_LP(lambda_=self.p_lambda, class_weight_mode=self.class_weight_mode)
+        self.model_ = CPL_LP(C=self.C, class_weight_mode=self.class_weight_mode)
         self.model_.fit(X, y_enc, sample_weight=sample_weight)
         self.coef_ = np.asarray(self.model_.w_).reshape(1, -1)
         self.intercept_ = np.asarray([self.model_.b_])
