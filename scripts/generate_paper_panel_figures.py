@@ -11,7 +11,7 @@ from matplotlib.lines import Line2D
 
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT_DIR = ROOT / "paper" / "figures" / "paper_panels"
+OUT_DIR = ROOT / "paper" / "figures"
 
 MODELS = [
     ("cpl", "cpl"),
@@ -35,6 +35,12 @@ SYNTH_LOW = {
     "cpl": ROOT / "results/paper_runs_v2/synthetic_signal/cpl_n31/balanced/C3p2",
     "svm": ROOT / "results/paper_runs_v2/synthetic_signal/svm_n31/C2",
     "logreg": ROOT / "results/paper_runs_v2/synthetic_signal/logreg_n31/C4",
+}
+
+SYNTH_HIGH = {
+    "cpl": ROOT / "results/paper_runs_v2/synthetic_signal/cpl_n31/balanced/C4p6",
+    "svm": ROOT / "results/paper_runs_v2/synthetic_signal/svm_n31/C3p4",
+    "logreg": ROOT / "results/paper_runs_v2/synthetic_signal/logreg_n31/C10",
 }
 
 COLORS = {
@@ -476,13 +482,12 @@ def save_recovery_panel(bundles, out_path: Path):
 
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    save_diagnostics_panel(COLON_LOW, OUT_DIR / "colon_diagnostics_panel.png")
-    save_diagnostics_panel(COLON_HIGH, OUT_DIR / "colon_diagnostics_panel_high.png")
-    save_diagnostics_panel(SYNTH_LOW, OUT_DIR / "synthetic_diagnostics_panel.png")
-    save_accuracy_panel(COLON_LOW, OUT_DIR / "colon_accuracy_panel.png")
-    save_features_panel(COLON_LOW, OUT_DIR / "colon_features_panel.png", "Colon cancer: low-feature selected features")
-    save_accuracy_panel(SYNTH_LOW, OUT_DIR / "synthetic_accuracy_panel.png")
-    save_recovery_panel(SYNTH_LOW, OUT_DIR / "synthetic_recovery_panel.png")
+    save_diagnostics_panel(COLON_LOW, OUT_DIR / "colon_diagnostics_low.png")
+    save_diagnostics_panel(COLON_HIGH, OUT_DIR / "colon_diagnostics_high.png")
+    save_diagnostics_panel(SYNTH_LOW, OUT_DIR / "synthetic_diagnostics_low.png")
+    save_diagnostics_panel(SYNTH_HIGH, OUT_DIR / "synthetic_diagnostics_high.png")
+    save_recovery_panel(SYNTH_LOW, OUT_DIR / "synthetic_recovery_low.png")
+    save_recovery_panel(SYNTH_HIGH, OUT_DIR / "synthetic_recovery_high.png")
 
 
 if __name__ == "__main__":

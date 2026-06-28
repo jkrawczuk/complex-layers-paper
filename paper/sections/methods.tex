@@ -187,6 +187,9 @@ For each split and neuron depth $n$, we evaluate three predictive summaries:
 training fold;
 \item \textbf{neuron prediction}: prediction of the $n$-th neuron only.
 \end{itemize}
+Ties in the unweighted vote are resolved by the prediction of the first neuron. Therefore, in the binary case,
+the unweighted vote at $n=2$ is identical to the first-neuron prediction within any split where the second neuron
+is available.
 
 For the weighted vote, each neuron receives a non-negative quality score derived from its training-fold
 balanced accuracy:
@@ -202,8 +205,10 @@ this procedure does not use held-out labels.
 For each depth $n$, metrics are then averaged over the splits in which that depth was actually available.
 A depth can become unavailable in a split when the sequence stops early because no additional non-zero feature
 set can be produced. We therefore report both the averaged metric values and the number of available CV splits
-supporting each depth. The main summaries are vote accuracy, weighted-vote accuracy, $n$-th-neuron accuracy,
-selected features, training loss, and L1 norm.
+supporting each depth. Comparisons across depths should therefore be read together with the available-split
+counts: a higher mean accuracy at a later depth can partly reflect the subset of splits in which that later
+neuron could be built, rather than only the effect of adding another neuron. The main summaries are vote
+accuracy, weighted-vote accuracy, $n$-th-neuron accuracy, selected features, training loss, and L1 norm.
 
 For the synthetic benchmark, the known set of 12 informative features also allows feature-recovery analysis.
 Feature precision measures what fraction of the selected features are truly informative, while feature recall
@@ -214,8 +219,8 @@ selection quality and stability deserve explicit evaluation in high-dimensional 
 \cite{saeys2007review,nogueira2018stability,lukaszuk2024importance}.
 
 \subsection*{Computational environment}
-All experiments were implemented in Python and are distributed with the manuscript repository. The submitted
-artifact specifies Python 3.13 or 3.14 with Poetry-managed dependencies; the final local verification used
+All experiments were implemented in Python and are distributed with the manuscript repository. The repository
+specifies Python 3.13 or 3.14 with Poetry-managed dependencies; the final local verification used
 Python 3.14.3 and Poetry 2.3.2. Package versions are pinned in \texttt{poetry.lock}, including
 \texttt{numpy}, \texttt{scipy}, \texttt{scikit-learn}, \texttt{pandas}, and \texttt{matplotlib}. The paper-scale
 runs were executed on a MacBook Air (Apple M2, 2022; 16 GB RAM) running macOS Tahoe 26.5.1, and each run

@@ -2,19 +2,20 @@
 
 This directory contains the final raster figure assets included by `paper/main.tex`.
 
-Current figure sets:
+Current manuscript panels:
 
-- `colon_cancer/` - sparse-regime accuracy and feature-count panels for `cpl`, `svm`, and `logreg`.
-- `synthetic_signal/` - sparse-regime accuracy and ground-truth feature-recovery panels for `cpl`, `svm`, and `logreg`.
+- `colon_diagnostics_low.png`
+- `colon_diagnostics_high.png`
+- `synthetic_diagnostics_low.png`
+- `synthetic_diagnostics_high.png`
+- `synthetic_recovery_low.png`
+- `synthetic_recovery_high.png`
 
-The files were generated from local experiment bundles under `results/paper_runs/` using:
+The files are generated from local experiment bundles under `results/paper_runs_v2/` using:
 
 ```bash
-poetry run python scripts/generate_cv_plots.py \
-  --bundle-dir <bundle-dir> \
-  --n-total-features 2000
+python scripts/generate_paper_panel_figures.py
 ```
 
 The `results/` directory is ignored by git. To regenerate these figures from scratch, first run the
-three-step experiment pipeline described in the repository-level `README.md`, then copy the relevant
-`figures/*.png` outputs into the dataset-specific directories here.
+experiment pipeline described in the repository-level `README.md`, then run the panel-generation script above.

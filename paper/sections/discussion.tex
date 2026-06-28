@@ -5,13 +5,14 @@ claim that voting should monotonically improve classification.
 Across both datasets, the most useful information was typically concentrated in the first few neurons, but
 the exact pattern depended on the base learner and on the feature-count regime induced by regularization.
 
-The real-data benchmark showed that later neurons can be useful when the first neuron contains few features.
-Under low-feature settings on \texttt{colon\_cancer}, all three learners exhibited at least one configuration in
-which the best mean accuracy appeared after the first neuron.
-This suggests that sequential feature removal can expose complementary predictive structure that is not
-captured by the initial low-feature solution alone.
-In contrast, high-feature first-neuron solutions often concentrated most of the predictive signal immediately,
-leaving little room for later neurons to improve performance.
+The real-data benchmark showed that later neurons can be useful, but only modestly and not uniformly.
+On \texttt{colon\_cancer}, \texttt{cpl} and \texttt{svm} reached their best mean accuracies after several neurons,
+whereas \texttt{logreg} was already best at the first neuron in both feature-count regimes.
+This suggests that sequential feature removal can expose complementary predictive structure for some learners,
+but it should not be interpreted as a general guarantee that deeper voting improves accuracy.
+The high-feature regime also showed that broader first neurons do not necessarily exhaust the constructible
+sequence: although they selected more features initially, weaker effective regularization allowed later nonzero
+neurons to be fitted in many splits.
 
 The synthetic benchmark clarifies why these regimes differ.
 When the first neuron is broad, as in high-feature \texttt{logreg}, it can recover a large fraction of the true
@@ -20,6 +21,16 @@ When the first neuron is narrower, as in low-feature \texttt{cpl} or \texttt{svm
 features is more gradual, and meaningful gains may emerge only after several neurons.
 This makes neuron depth a useful analytical dimension for studying how a learner decomposes signal, rather
 than merely an aggregation mechanism.
+The low-feature \texttt{logreg} result also illustrates why later-depth summaries must be interpreted together
+with coverage.
+Its apparent improvement at $n=2$ reflects the subset of cross-validation splits in which a second neuron could
+be fitted; within those splits, the unweighted two-neuron vote is identical to the first-neuron prediction under
+the tie-breaking rule.
+Thus, available-split counts are part of the result rather than only a plotting diagnostic.
+
+Across both benchmarks, training-based weighted voting changed the conclusions little.
+The weighted and uniform vote trajectories were usually close, indicating that the main effect came from the
+successive sparse fits and the changing feature pool, not from the particular vote-weighting scheme.
 
 The comparison also exposes a recurring trade-off between signal recovery and feature purity.
 Broader neurons often recovered a larger share of informative variables, but they also selected many noisy
@@ -30,8 +41,8 @@ collapsed into a single accuracy score, in line with broader feature-selection l
 \cite{saeys2007review,nogueira2018stability}.
 
 An additional practical observation is that realized depth itself is informative.
-Some configurations reached the nominal limit of 31 neurons, whereas others terminated after only 5--16
-neurons on the synthetic benchmark.
+Some colon cancer configurations reached the nominal limit of 31 neurons, whereas the synthetic configurations
+terminated after 3--13 neurons.
 This suggests that the number of constructible neurons is not a trivial implementation detail; it reflects how
 fast the learner exhausts separable structure under the imposed regularization.
 

@@ -29,37 +29,37 @@ the corresponding mean accuracy, and the realized number of neurons.}
 \end{table}
 
 \subsection*{Colon cancer benchmark}
-On the colon cancer benchmark, the low-feature regime showed learner-specific behavior across the first few
-successive neurons.
-For \texttt{cpl} with $C_{\mathrm{low}}$, the mean vote accuracy increased from 0.7690 for the first neuron to
-0.7710 at $n=4$, while the average first-neuron width was 4.43 features.
-For \texttt{svm} with $C_{\mathrm{low}}$, accuracy increased slightly from 0.8538 at $n=1$ to 0.8545 at $n=3$.
-For \texttt{logreg} with $C_{\mathrm{low}}$, the best mean vote accuracy was already obtained by the first neuron
-(0.8524), and only three neurons were built before the feature space was exhausted under this setting.
+The colon cancer benchmark did not show large accuracy gains from building many successive neurons.
+Across both feature-count regimes, the best mean vote accuracy was reached early: at $n=4$ for \texttt{cpl},
+at $n=3$ for \texttt{svm}, and already at $n=1$ for \texttt{logreg}.
+Thus, in this real-data setting, neuron depth is better interpreted as a diagnostic of how each learner
+distributes signal across successive sparse fits than as a mechanism that consistently improves accuracy.
 
-The high-feature regime produced a different pattern.
-For \texttt{cpl} with $C_{\mathrm{high}}$, the mean vote accuracy improved from 0.8245 at $n=1$ to 0.8493 at
-$n=4$.
-For \texttt{svm} with $C_{\mathrm{high}}$, accuracy increased from 0.8326 at $n=1$ to 0.8514 at $n=3$.
-In contrast, \texttt{logreg} with $C_{\mathrm{high}}$ achieved the highest colon cancer accuracy in this
-evaluation at the first neuron (0.8667), and additional neurons did not improve the vote.
+The feature-count regime affected the learners differently.
+For \texttt{cpl}, moving from $C_{\mathrm{low}}$ to $C_{\mathrm{high}}$ substantially improved the best mean vote
+accuracy, from 0.7710 to 0.8493.
+For \texttt{svm} and \texttt{logreg}, the two regimes were closer in predictive performance, although
+\texttt{logreg} with $C_{\mathrm{high}}$ achieved the highest colon cancer accuracy in the table
+(0.8667 at $n=1$).
+This suggests that the broader first neuron was especially beneficial for the \texttt{cpl} formulation, whereas
+the other two learners already captured most of their useful signal under the narrower setting.
 
-The weighted vote based on training-fold balanced accuracy did not materially change the qualitative pattern of
-the colon cancer results. It matched the best unweighted result for low-feature \texttt{svm}
-(0.8545 at $n=3$), low-feature \texttt{logreg} (0.8524 at $n=1$), high-feature \texttt{svm} (0.8514 at $n=3$),
-and high-feature \texttt{logreg} (0.8667 at $n=1$).
-For \texttt{cpl}, the weighted vote was very close to the unweighted vote, reaching 0.7698 at $n=4$ in the
-low-feature regime and 0.8481 at $n=4$ in the high-feature regime.
+The realized depth gives a second view of the same regularization effect.
+The high-feature regimes selected more features in the first neuron, but they also built at least as many neurons
+as their low-feature counterparts.
+This is not a contradiction: under the objective convention used here, smaller $C$ imposes stronger effective L1
+regularization, so later low-feature neurons can stop because no additional feature is worth selecting.
+Larger $C$ weakens this effect and allows nonzero later neurons to be fitted even after broader earlier neurons.
 
-Taken together, the colon cancer results indicate that useful complementary signal often appears in
-the first few neurons, but the benefit of depth depends strongly on the base learner and feature-count regime.
-The trajectory figures therefore focus on the low-feature regime, where neuron depth is most informative and
-successive neurons have the clearest opportunity to add complementary signal. High-feature regimes are summarized
-in Table~\ref{tab:colon_summary} and discussed in the text as a contrasting case.
+The weighted vote based on training-fold balanced accuracy did not materially change these conclusions.
+It either matched the best unweighted result or stayed very close to it, indicating that the main colon cancer
+pattern is driven by the base sparse fits and the feature-count regime rather than by the voting rule itself.
+The corresponding high-feature diagnostic trajectories are provided in the Appendix as a robustness check for the
+patterns summarized in Table~\ref{tab:colon_summary}.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/paper_panels/colon_diagnostics_panel.png}
+\includegraphics[width=\linewidth]{figures/colon_diagnostics_low.png}
 \caption{Low-feature diagnostic trajectories on the colon cancer benchmark. Columns show \texttt{cpl},
 \texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$. Rows report predictive accuracy, the average number
 of features selected by the $n$-th neuron, the number of CV splits in which that neuron depth was available,
@@ -67,6 +67,23 @@ and optimization diagnostics for the $n$-th neuron. Training loss and L1 norm ar
 within-model maximum values and should be interpreted as shape summaries rather than absolute-scale comparisons.}
 \label{fig:colon_sparse_accuracy}
 \end{figure}
+
+Figure~\ref{fig:colon_sparse_accuracy} shows why the later-neuron results should be interpreted cautiously.
+For all three learners, the accuracy of the single $n$-th neuron decreases with depth, and the trajectories become
+less stable near the end of the fitted sequence.
+The weighted-vote curve is almost indistinguishable from the uniform-vote curve over most depths, so the figure
+supports the table-level conclusion that training-based vote weights do not materially alter the colon cancer
+results.
+This instability coincides with a decreasing number of cross-validation splits in which that neuron depth is
+available, so the right-hand ends of the trajectories summarize fewer fitted neurons than the early depths.
+The selected-feature row shows a steady narrowing of later neurons for \texttt{cpl} and \texttt{svm}, with the
+decline being more gradual for \texttt{svm}; for \texttt{logreg}, even the second and third neurons are not fitted
+in all splits.
+The optimization diagnostics are consistent with this picture.
+Training loss increases with depth, indicating that later neurons are fitted on progressively weaker remaining
+feature sets rather than on an easier residual problem.
+The L1 norm generally decreases, but this should be read together with the selected-feature counts: later neurons
+also use fewer features, so the norm trajectory is not an independent measure of model quality.
 
 \FloatBarrier
 
@@ -99,14 +116,21 @@ and its depth, and the realized number of neurons.}
 \label{tab:synthetic_performance}
 \end{table}
 
-In the low-feature regime, later neurons frequently improved predictive performance.
+In the low-feature regime, later depths sometimes showed higher mean predictive performance, but these comparisons
+must be read together with the available-split counts.
 For \texttt{cpl} with $C_{\mathrm{low}}$, accuracy increased from 0.8180 at $n=1$ to 0.8430 at $n=3$, while
 the first neuron selected 5.03 features on average.
 For \texttt{svm} with $C_{\mathrm{low}}$, the best mean vote accuracy was 0.8500 at $n=3$, compared with 0.8250 at
 $n=1$.
 The first neuron selected 6.42 features on average.
-For \texttt{logreg} with $C_{\mathrm{low}}$, the best result occurred at $n=2$, improving from 0.6950 at $n=1$ to
-0.7424 at $n=2$.
+For \texttt{logreg} with $C_{\mathrm{low}}$, the table reports a higher mean accuracy at $n=2$ than at $n=1$
+(0.7424 versus 0.6950), but this is a coverage-conditioned effect rather than a direct change in the unweighted
+binary vote.
+The second neuron was available in 59 of the 100 splits; within those same 59 splits, the unweighted vote at
+$n=2$ is identical to the first-neuron prediction because ties are resolved by the first neuron.
+Thus, the higher mean at $n=2$ indicates that splits in which a second \texttt{logreg} neuron could be fitted were
+also splits where the first neuron already performed better, while the weighted vote can still change at $n=2$
+because the two neurons receive unequal training-derived weights.
 
 In the high-feature regime, the first neuron often captured a larger fraction of the true signal, but additional
 neurons contributed less useful information.
@@ -125,11 +149,11 @@ weighted vote reached 0.7678 at $n=2$ compared with the unweighted value of 0.74
 
 As for the colon cancer benchmark, the trajectory figures focus on the low-feature regime, where successive
 neurons are most diagnostic of how predictive performance changes across depth. High-feature behavior is reported
-in Table~\ref{tab:synthetic_performance} and in the text above.
+in Table~\ref{tab:synthetic_performance}, in the text above, and in the Appendix diagnostic panel.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/paper_panels/synthetic_diagnostics_panel.png}
+\includegraphics[width=\linewidth]{figures/synthetic_diagnostics_low.png}
 \caption{Low-feature diagnostic trajectories on the synthetic benchmark. Columns show \texttt{cpl},
 \texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$. Rows report predictive accuracy, the average number
 of features selected by the $n$-th neuron, the number of CV splits in which that neuron depth was available,
@@ -137,6 +161,25 @@ and optimization diagnostics for the $n$-th neuron. Training loss and L1 norm ar
 within-model maximum values and should be interpreted as shape summaries rather than absolute-scale comparisons.}
 \label{fig:synthetic_sparse_accuracy}
 \end{figure}
+
+Figure~\ref{fig:synthetic_sparse_accuracy} shows a clearer separation between the behavior of individual neurons
+and the behavior of the cumulative vote.
+For \texttt{cpl} and \texttt{svm}, the accuracy of the single $n$-th neuron drops after the first few depths,
+whereas the uniform and weighted votes remain comparatively stable over the same range.
+The two aggregate-vote curves are also very close to one another, indicating that the main effect comes from
+aggregating successive neurons rather than from the particular training-based weighting scheme.
+This indicates that later neurons are weak as standalone classifiers but can still preserve enough complementary
+information to avoid degrading the aggregate vote immediately.
+As in the colon cancer benchmark, the available-split row is essential for interpretation: the last depths are
+based on fewer cross-validation splits, especially for \texttt{cpl} and \texttt{logreg}, and should not be read as
+equally stable estimates.
+The selected-feature trajectories also differ by learner: \texttt{cpl} and \texttt{logreg} become narrower with
+depth, while \texttt{svm} first broadens and then contracts, suggesting a different path through the remaining
+feature space.
+The training diagnostics again show increasing loss and decreasing L1 norm across depth, consistent with later
+neurons being fitted on progressively weaker residual feature sets rather than on easier classification problems.
+Because the synthetic benchmark has known informative and noise features, the next subsection examines whether
+these predictive trajectories correspond to recovery of the planted signal.
 
 \FloatBarrier
 
@@ -176,7 +219,7 @@ more gradually across successive neurons before later neurons become dominated b
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/paper_panels/synthetic_recovery_panel.png}
+\includegraphics[width=\linewidth]{figures/synthetic_recovery_low.png}
 \caption{Feature-recovery trajectories for the low-feature synthetic benchmark. Columns show \texttt{cpl},
 \texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$; rows report cumulative informative-feature recall,
 per-neuron informative and noise fractions, and the numbers of informative and noise features selected by the
