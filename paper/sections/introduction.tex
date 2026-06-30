@@ -23,33 +23,35 @@ measuring whether a method recovers the genuinely informative variables before d
 ones. This distinction is particularly important in high-dimensional gene-expression studies,
 where feature selection and classifier evaluation can become confounded by selection bias if the protocol is
 not carefully separated across training and test data \cite{ambroise2002,krawczuk2016feature}. To address
-this limitation, we add a synthetic binary benchmark with known informative features, independent noise
-features, and a predefined ranking of informative-feature strengths.
-This perspective is also aligned with recent work emphasizing that feature-selection stability should be
-treated as an important evaluation dimension in high-dimensional classification, not merely as a secondary
-diagnostic after predictive accuracy \cite{lukaszuk2024importance}.
+this limitation, we add a synthetic binary benchmark with known informative features and independent noise
+features.
+This perspective is also aligned with feature-selection literature emphasizing that selection behavior and
+stability should be examined explicitly in high-dimensional classification, not treated merely as secondary
+diagnostics after predictive accuracy \cite{saeys2007review,nogueira2018stability,lukaszuk2024importance}.
 
 We compare three methods under the same protocol:
 \texttt{cpl}, \texttt{svm}, and \texttt{logreg}. Here, \texttt{cpl} denotes the convex piecewise-linear
-base learner: its hinge-loss objective with L1 regularization is convex and piecewise linear, which allows each
-sparse neuron to be trained through linear programming. In contrast,
+base learner used in the complex-layer formal-neuron construction \cite{bobrowski2021,bobrowski2022}: its
+hinge-loss objective with L1 regularization is convex and piecewise linear, which allows each sparse neuron to
+be trained through linear programming. In contrast,
 \texttt{svm} denotes the squared-hinge-loss linear SVM with L1 regularization, and \texttt{logreg} denotes
 the corresponding L1-regularized logistic-regression base learner.
 The goal is to assess how predictive performance, sparsity,
-computational cost, and feature-recovery behavior evolve across successive neurons in a controlled repeated
+available depth, and feature-recovery behavior evolve across successive neurons in a controlled repeated
 cross-validation setup.
 The compared learners are all grounded in well-established sparse linear classification frameworks, including
 L1-regularized logistic models and large-scale linear classifiers \cite{friedman2010glmnet,fan2008liblinear}.
 
 Rather than assuming that aggregating many neurons must monotonically improve classification, we study a more
-basic and more informative question: what does each next neuron contribute? In particular, we ask how much
-predictive signal is captured by the first neurons, when later neurons still add complementary information, and
-when they become dominated by noisy features.
+basic question: what does each next neuron contribute, and when can it be constructed at all? In particular,
+we ask how much predictive signal is captured by the first neurons, when later neurons still add complementary
+information, when later-depth summaries become coverage-dependent, and when selected features become dominated
+by noise.
 
 Main contributions:
 \begin{enumerate}[noitemsep]
 \item A unified complex-layer framework evaluated with three linear sparse learners.
 \item A repeated cross-validation benchmark on the classical colon cancer microarray dataset.
-\item A synthetic benchmark with known feature relevance and known ranking of signal strengths.
-\item Neuron-by-neuron analysis of accuracy, sparsity, weighted voting, and feature recovery.
+\item A synthetic benchmark with known feature relevance for direct feature-recovery analysis.
+\item Neuron-by-neuron analysis of accuracy, sparsity, available depth, voting behavior, and feature recovery.
 \end{enumerate}

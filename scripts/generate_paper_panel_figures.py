@@ -269,24 +269,26 @@ def save_diagnostics_panel(bundles, out_path: Path):
             ax_splits.set_ylabel("available\nCV splits")
             ax_diag.set_ylabel("max-scaled\nvalue")
 
-    fig.supxlabel("neuron depth n", y=0.02)
+    fig.supxlabel("neuron depth n", x=0.5, y=0.020, fontsize=PANEL_FONT_SIZE)
     fig.legend(
         accuracy_handles,
         accuracy_labels,
         loc="upper center",
-        bbox_to_anchor=(0.5, 0.985),
+        bbox_to_anchor=(0.33, 0.985),
         ncol=3,
-        frameon=True,
+        frameon=False,
+        fontsize=PANEL_FONT_SIZE,
     )
     fig.legend(
         diagnostic_handles,
         diagnostic_labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, 0.055),
+        bbox_to_anchor=(0.24, 0.003),
         ncol=2,
-        frameon=True,
+        frameon=False,
+        fontsize=PANEL_FONT_SIZE,
     )
-    fig.subplots_adjust(top=0.90, bottom=0.16)
+    fig.subplots_adjust(top=0.90, bottom=0.09)
     fig.savefig(out_path, bbox_inches="tight")
     plt.close(fig)
 
@@ -368,7 +370,7 @@ def save_accuracy_panel(bundles, out_path: Path):
             ax.set_ylabel("accuracy")
             ax_cov.set_ylabel("available\nCV splits")
 
-    fig.supxlabel("neuron depth n", y=0.01)
+    fig.supxlabel("neuron depth n", y=0.01, fontsize=PANEL_FONT_SIZE)
     fig.legend(
         legend_handles,
         legend_labels,
@@ -376,6 +378,7 @@ def save_accuracy_panel(bundles, out_path: Path):
         bbox_to_anchor=(0.5, 0.99),
         ncol=3,
         frameon=True,
+        fontsize=PANEL_FONT_SIZE,
     )
     fig.subplots_adjust(top=0.80, bottom=0.13)
     fig.savefig(out_path, bbox_inches="tight")
@@ -403,7 +406,7 @@ def save_features_panel(bundles, out_path: Path, title_prefix: str):
         _style_axis(ax)
         if col == 0:
             ax.set_ylabel("selected features")
-    fig.supxlabel("neuron depth n", y=0.02)
+    fig.supxlabel("neuron depth n", y=0.02, fontsize=PANEL_FONT_SIZE)
     fig.subplots_adjust(bottom=0.20, top=0.88, wspace=0.08)
     fig.savefig(out_path, bbox_inches="tight")
     plt.close(fig)
@@ -468,14 +471,21 @@ def save_recovery_panel(bundles, out_path: Path):
                 _sparse_xticks(ax, x)
             _style_axis(ax)
 
-    fig.suptitle("Synthetic feature-recovery trajectories", y=0.995)
-    fig.supxlabel("neuron depth n", y=0.02)
+    fig.supxlabel("neuron depth n", y=0.005, fontsize=PANEL_FONT_SIZE)
     legend_handles = [
         Line2D([0], [0], color=COLORS["informative"], marker="o", linewidth=2.2, label="informative features"),
         Line2D([0], [0], color=COLORS["noise"], marker="s", linewidth=2.2, label="noise features"),
     ]
-    fig.legend(legend_handles, [handle.get_label() for handle in legend_handles], loc="upper center", bbox_to_anchor=(0.5, 0.94), ncol=2, frameon=True)
-    fig.subplots_adjust(top=0.82, bottom=0.08)
+    fig.legend(
+        legend_handles,
+        [handle.get_label() for handle in legend_handles],
+        loc="upper center",
+        bbox_to_anchor=(0.32, 0.965),
+        ncol=2,
+        frameon=False,
+        fontsize=PANEL_FONT_SIZE,
+    )
+    fig.subplots_adjust(top=0.86, bottom=0.10)
     fig.savefig(out_path, bbox_inches="tight")
     plt.close(fig)
 

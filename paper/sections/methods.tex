@@ -42,8 +42,7 @@ The final synthetic dataset used in this study has:
 
 The construction is based on three latent signal sources. For each sample $i$ and source
 $b \in \{1,2,3\}$, a latent value $z_{ib}$ is drawn from a standard normal distribution. The three sources have
-decreasing strengths $s=(1.2,\;0.9,\;0.6)$, so source 1 is strongest and source 3 is weakest. The class score
-is generated directly from these latent signals:
+decreasing strengths $s=(1.2,\;0.9,\;0.6)$. The class score is generated directly from these latent signals:
 \[
 r_i=\sum_{b=1}^{3}s_b z_{ib}+\eta_i,
 \]
@@ -65,9 +64,8 @@ signal source and alternate in sign, so the informative variables are not all po
 class label.
 
 Class labels are generated from the three latent signal sources, not from all 2,000 observed features. The
-generated CSV stores the raw feature values rather than globally standardized values. Because the benchmark
-fixes the indices of the 12 informative features, it allows us to evaluate both predictive accuracy and the
-number of ground-truth informative features recovered by each neuron and by the cumulative sequence of neurons.
+generated CSV stores the raw feature values rather than globally standardized values. Because the informative
+feature set is known, the benchmark supports both predictive evaluation and feature-recovery analysis.
 
 \subsubsection*{Data preprocessing}
 For the colon cancer benchmark, the input matrix was used as exported from the Bioconductor
@@ -84,7 +82,7 @@ neuron fitting, voting-weight estimation, and all metric calculations were perfo
 split structure; held-out test labels were not used during training or feature selection.
 
 \subsection*{Model family}
-The core model is a complex-layer classifier that sequentially trains sparse linear neurons and removes selected
+The core model is a complex-layer classifier that sequentially trains sparse formal neurons and removes selected
 features after each neuron. This construction follows the Complex Layers of Formal Neurons line of work
 \cite{bobrowski2021,bobrowski2022}. For analysis, we treat neuron depth $n$ as a model dimension in its own
 right. For each depth, we inspect both the prediction of the $n$-th neuron itself and the cumulative prediction
@@ -167,9 +165,8 @@ high-feature regimes before repeated cross-validation.}
 For both benchmarks, we use repeated stratified cross-validation with a fixed random seed.
 Both benchmarks reported in this manuscript use 10 folds and 10 repeats, giving 100 train/test splits for
 each dataset and model configuration.
-The split-wise protocol is important in this setting because feature selection bias is a well-known failure
-mode in high-dimensional gene-expression studies when selection and evaluation are not strictly separated
-\cite{ambroise2002,krawczuk2016feature}.
+All preprocessing, feature selection, neuron fitting, and vote-weight estimation are performed within each
+training fold before evaluation on the held-out fold.
 
 Within each train/test split, the complex-layer procedure is applied as follows:
 \begin{enumerate}[noitemsep]
@@ -210,13 +207,12 @@ counts: a higher mean accuracy at a later depth can partly reflect the subset of
 neuron could be built, rather than only the effect of adding another neuron. The main summaries are vote
 accuracy, weighted-vote accuracy, $n$-th-neuron accuracy, selected features, training loss, and L1 norm.
 
-For the synthetic benchmark, the known set of 12 informative features also allows feature-recovery analysis.
-Feature precision measures what fraction of the selected features are truly informative, while feature recall
-measures what fraction of the 12 informative features have been recovered. We use both per-neuron and
-cumulative recall to assess whether later neurons add new signal or mainly move toward noisy variables.
-This emphasis goes beyond pure prediction accuracy and is consistent with prior arguments that feature
-selection quality and stability deserve explicit evaluation in high-dimensional settings
-\cite{saeys2007review,nogueira2018stability,lukaszuk2024importance}.
+For the synthetic benchmark, the known set of 12 informative features lets us separate predictive performance
+from feature-recovery behavior. Feature precision is the fraction of selected features that are informative,
+and feature recall is the fraction of all informative features that have been selected. Per-neuron summaries
+show what each newly fitted neuron selects, whereas cumulative summaries show how much signal has been recovered
+by the sequence up to depth $n$. This provides a direct check on whether later neurons add informative features
+or mostly select noise.
 
 \subsection*{Computational environment}
 All experiments were implemented in Python and are distributed with the manuscript repository. The repository
