@@ -28,29 +28,25 @@ features. Three linear learners are evaluated within the same complex-layer prot
 (convex piecewise-linear; hinge loss with L1 regularization), \texttt{svm} (squared hinge loss with L1
 regularization), and \texttt{logreg} (logistic loss with L1 regularization). In each layer, one sparse neuron is
 trained and its selected features are removed before fitting the next neuron. Performance is assessed using
-repeated stratified cross-validation. We summarize predictive accuracy, selected-feature counts, weighted voting
-and, for the synthetic benchmark, feature recovery across neuron depth.
+repeated stratified cross-validation. We summarize accuracy, selected-feature counts, voting behavior and, for
+the synthetic benchmark, feature recovery across neuron depth.
 
 \textbf{Results.}
 On colon cancer, additional neurons produced small and learner-dependent accuracy changes rather than a
 monotonic improvement. The best mean vote accuracy was reached early: at $n=4$ for \texttt{cpl}, at $n=3$ for
 \texttt{svm}, and already at $n=1$ for \texttt{logreg}. The feature-count regime mattered most for
-\texttt{cpl}, whose best accuracy increased from 0.7710 in the low-feature regime to 0.8493 in the high-feature
-regime; high-feature \texttt{logreg} achieved the highest colon cancer accuracy, 0.8667, with the first neuron
-alone. Training-quality weighted voting was usually almost indistinguishable from uniform voting, so the main
-patterns were driven by the sparse fits and feature-count regimes rather than by the voting rule. On the
-synthetic benchmark, low-feature \texttt{cpl} and \texttt{svm} improved over the first few depths, whereas the
-apparent low-feature \texttt{logreg} improvement at $n=2$ reflected the subset of splits in which a second neuron
-could be built. Ground-truth-aware metrics showed a trade-off: broader first neurons recovered more informative
-features at once but with lower precision, whereas narrower configurations recovered informative structure more
-gradually across successive neurons.
+\texttt{cpl}, whereas high-feature \texttt{logreg} achieved the highest colon cancer accuracy with the first
+neuron alone. Weighted voting was close to uniform voting. On the synthetic benchmark, low-feature
+\texttt{cpl} and \texttt{svm} improved over the first few depths, whereas the apparent low-feature
+\texttt{logreg} gain at $n=2$ reflected the subset of splits in which a second neuron could be built.
+Ground-truth-aware metrics showed a trade-off: broader first neurons recovered more informative features at once
+but with lower precision, whereas narrower configurations recovered informative structure more gradually.
 
 \textbf{Conclusions.}
 The complex-layer protocol is most useful here as a diagnostic framework rather than as a guarantee of improved
 voting accuracy. Neuron depth reveals how each sparse learner distributes predictive signal, exhausts the
 remaining feature pool, and trades informative-feature recall against selection precision. Later-depth summaries
-must be read together with available-split counts, and training-based vote weighting should not be expected to
-change the qualitative behavior when uniform and weighted trajectories are already close.
+must be read together with available-split counts.
 \end{abstract}
 
 \begin{document}
