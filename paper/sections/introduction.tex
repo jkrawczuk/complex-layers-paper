@@ -25,9 +25,6 @@ where feature selection and classifier evaluation can become confounded by selec
 not carefully separated across training and test data \cite{ambroise2002,krawczuk2016feature}. To address
 this limitation, we add a synthetic binary benchmark with known informative features and independent noise
 features.
-This perspective is also aligned with feature-selection literature emphasizing that selection behavior and
-stability should be examined explicitly in high-dimensional classification, not treated merely as secondary
-diagnostics after predictive accuracy \cite{saeys2007review,nogueira2018stability,lukaszuk2024importance}.
 
 We compare three methods under the same protocol:
 \texttt{cpl}, \texttt{svm}, and \texttt{logreg}. Here, \texttt{cpl} denotes the convex piecewise-linear

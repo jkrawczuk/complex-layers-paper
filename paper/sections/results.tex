@@ -51,12 +51,6 @@ This is not a contradiction: under the objective convention used here, smaller $
 regularization, so later low-feature neurons can stop because no additional feature is worth selecting.
 Larger $C$ weakens this effect and allows nonzero later neurons to be fitted even after broader earlier neurons.
 
-The weighted vote based on training-fold balanced accuracy did not materially change these conclusions.
-It either matched the best unweighted result or stayed very close to it, indicating that the main colon cancer
-pattern is driven by the base sparse fits and the feature-count regime rather than by the voting rule itself.
-The corresponding high-feature diagnostic trajectories are provided in the Appendix as a robustness check for the
-patterns summarized in Table~\ref{tab:colon_summary}.
-
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\linewidth]{figures/colon_diagnostics_low.png}
@@ -64,7 +58,9 @@ patterns summarized in Table~\ref{tab:colon_summary}.
 \texttt{svm}, and \texttt{logreg} with $C_{\mathrm{low}}$. Rows report predictive accuracy, the average number
 of features selected by the $n$-th neuron, the number of CV splits in which that neuron depth was available,
 and optimization diagnostics for the $n$-th neuron. Training loss and L1 norm are divided by their
-within-model maximum values and should be interpreted as shape summaries rather than absolute-scale comparisons.}
+within-model maximum values and should be interpreted as shape summaries rather than absolute-scale comparisons.
+Shaded bands show uncertainty or variability across CV splits: approximate 95\% intervals for accuracy and
+one-standard-deviation bands for the other plotted summaries.}
 \label{fig:colon_sparse_accuracy}
 \end{figure}
 
@@ -84,6 +80,8 @@ Training loss increases with depth, indicating that later neurons are fitted on 
 feature sets rather than on an easier residual problem.
 The L1 norm generally decreases, but this should be read together with the selected-feature counts: later neurons
 also use fewer features, so the norm trajectory is not an independent measure of model quality.
+The corresponding high-feature diagnostic trajectories are provided in the Appendix as a robustness check for the
+patterns summarized in Table~\ref{tab:colon_summary}.
 
 \FloatBarrier
 
@@ -126,20 +124,15 @@ For \texttt{logreg} with $C_{\mathrm{low}}$, the best tabulated mean occurs at $
 coverage-conditioned rather than as a direct two-neuron voting gain.
 With binary unweighted voting and the tie rule used here, the $n=2$ vote is identical to the first-neuron
 prediction within any split where the second neuron exists.
-Thus, the higher mean at $n=2$ mainly shows that splits in which a second \texttt{logreg} neuron could be fitted
-were also splits where the first neuron already performed better; the weighted vote can still differ at $n=2$
-because the two neurons receive unequal training-derived weights.
+The higher mean at $n=2$ therefore reflects which splits remain in the summary: when a second \texttt{logreg}
+neuron could be fitted, the first neuron was already more accurate on those splits. The weighted vote is the
+only two-neuron summary that can differ at this depth, because the two neurons receive unequal weights estimated
+from the training fold.
 
-The high-feature regime is even more concentrated at early depths.
+The high-feature regime shows a similar early-depth pattern.
 High-feature \texttt{logreg} achieved its best mean accuracy with the first neuron alone, whereas high-feature
 \texttt{cpl} and \texttt{svm} showed only small gains at $n=3$ and $n=4$, respectively.
-Across these settings, weighted voting did not change the qualitative picture: the weighted and unweighted
-trajectories were generally close, and the main signal came from whether later neurons could still be fitted and
-what they selected, not from the particular vote-weighting scheme.
-
-As for the colon cancer benchmark, the trajectory figures focus on the low-feature regime, where successive
-neurons are most diagnostic of how predictive performance changes across depth. High-feature behavior is reported
-in Table~\ref{tab:synthetic_performance}, in the text above, and in the Appendix diagnostic panel.
+As in the colon cancer benchmark, weighted voting did not materially change the predictive trajectories.
 
 \begin{figure}[!htbp]
 \centering
@@ -161,6 +154,7 @@ The selected-feature trajectories also differ by learner, with \texttt{cpl} and 
 depth while \texttt{svm} first broadens and then contracts.
 The training diagnostics show the same pattern from the optimization side: loss increases and the L1 norm
 decreases as later neurons are fitted on progressively weaker residual feature sets.
+The corresponding high-feature diagnostic trajectories are provided in the Appendix.
 Because the synthetic benchmark has known informative and noise features, the next subsection examines whether
 these predictive trajectories correspond to recovery of the planted signal.
 

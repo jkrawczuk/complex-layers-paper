@@ -23,15 +23,10 @@ and has since become a long-standing reference problem for sparse learning and f
 bioinformatics, with representative comparative results in \cite{guyon2002,dudoit2002,li2004}.
 
 \subsubsection*{Synthetic benchmark with known informative features}
-To assess feature recovery directly, we additionally generate a synthetic binary classification dataset with
-a known ground-truth definition. The synthetic benchmark is designed to separate predictive performance
-from feature-discovery quality.
-
-The guiding idea is simple. The benchmark should contain a small set of truly informative variables and many
-unrelated noise variables. This lets us ask whether later neurons recover new informative signal or mainly move
-toward noise.
-
-The final synthetic dataset used in this study has:
+To assess feature recovery directly, we generate a synthetic binary classification dataset in which the
+informative features are known by construction. The dataset contains a small set of signal-bearing variables
+and many unrelated noise variables, so later neurons can be evaluated not only by predictive accuracy but also
+by whether they recover additional informative features or move toward noise. It has:
 \begin{itemize}[noitemsep]
 \item 100 samples,
 \item 2,000 features in total,
@@ -49,37 +44,27 @@ r_i=\sum_{b=1}^{3}s_b z_{ib}+\eta_i,
 where $\eta_i$ is Gaussian label noise with scale 0.55. The score is thresholded at its median, yielding
 exactly 50 negative and 50 positive samples.
 
-Each latent source is then represented in the observed feature matrix by four truly informative features.
-Thus, the observed signal-related part of the feature matrix has $3\times4=12$ informative features; the
-remaining 1,988 features are independent noise. Informative features are indexed first, followed by noise
-features.
-
-For an informative feature $j$ assigned to source $b$, the observed value is a noisy measurement of the
-corresponding latent source:
+Each latent source is represented in the observed feature matrix by four informative features. For an
+informative feature $j$ assigned to source $b$, the observed value is a noisy measurement of the corresponding
+latent source:
 \[
 x_{ij}=w_j z_{ib}+\epsilon_{ij}.
 \]
-The feature noise is Gaussian with scale 0.2. The informative weights decrease in absolute value within each
-signal source and alternate in sign, so the informative variables are not all positively correlated with the
-class label.
-
-Class labels are generated from the three latent signal sources, not from all 2,000 observed features. The
-generated CSV stores the raw feature values rather than globally standardized values. Because the informative
-feature set is known, the benchmark supports both predictive evaluation and feature-recovery analysis.
+The feature noise $\epsilon_{ij}$ is Gaussian with scale 0.2. The weights $w_j$ decrease in absolute value
+within each source and alternate in sign, so the informative variables are not all positively correlated with
+the class label. The resulting matrix contains 12 informative features and 1,988 independent noise features.
+Because the informative set is fixed by construction, the benchmark supports both predictive evaluation and
+feature-recovery analysis.
 
 \subsubsection*{Data preprocessing}
 For the colon cancer benchmark, the input matrix was used as exported from the Bioconductor
-\texttt{colonCA} package. No additional gene filtering or imputation was applied. Within each
-cross-validation split, feature columns were standardized by subtracting the training-fold mean and dividing by
-the training-fold standard deviation; the same transformation was then applied to the held-out fold. Class
-labels were encoded internally by the classifier implementation for binary learning, while the feature columns
-and row order of the archived CSV were kept fixed throughout the experiments.
+\texttt{colonCA} package. No additional gene filtering or imputation was applied.
 
-For the synthetic benchmark, the same split-wise standardization was applied: feature means and standard
-deviations were estimated on each training fold and then applied to the corresponding held-out fold. The same
-repeated stratified cross-validation protocol was therefore applied to both benchmarks. Feature selection,
-neuron fitting, voting-weight estimation, and all metric calculations were performed within the training/test
-split structure; held-out test labels were not used during training or feature selection.
+Both benchmarks were standardized within each cross-validation split. Feature means and standard deviations
+were estimated on the training fold and then applied to the corresponding held-out fold. Class labels were
+encoded internally by the classifier implementation for binary learning. Feature selection, neuron fitting,
+voting-weight estimation, and all metric calculations were performed within the training/test split structure;
+held-out test labels were not used during training or feature selection.
 
 \subsection*{Model family}
 The core model is a complex-layer classifier that sequentially trains sparse formal neurons and removes selected
@@ -97,9 +82,8 @@ computational perspective is closely related to regularization-path methods such
 \cite{friedman2010glmnet}, while the practical large-scale linear classification setting is represented by
 \texttt{LIBLINEAR} \cite{fan2008liblinear}.
 These techniques were selected because they share the same sparse linear model class and therefore allow a
-controlled comparison of neuron depth under different convex loss functions and optimization formulations:
-LP-based hinge loss for \texttt{cpl}, squared hinge loss for \texttt{svm}, and logistic loss for
-\texttt{logreg}.
+controlled comparison of neuron depth across three L1-regularized linear learners: LP-based hinge loss for
+\texttt{cpl}, squared hinge loss for \texttt{svm}, and logistic loss for \texttt{logreg}.
 
 For binary labels $y_i \in \{-1,+1\}$ and linear score $f(x_i)=w^\top x_i + b$, let $N$ be the number of
 training samples in the current fold, $p$ the number of currently available features, and
@@ -219,7 +203,6 @@ All experiments were implemented in Python and are distributed with the manuscri
 specifies Python 3.13 or 3.14 with Poetry-managed dependencies; the final local verification used
 Python 3.14.3 and Poetry 2.3.2. Package versions are pinned in \texttt{poetry.lock}, including
 \texttt{numpy}, \texttt{scipy}, \texttt{scikit-learn}, \texttt{pandas}, and \texttt{matplotlib}. The paper-scale
-runs were executed on a MacBook Air (Apple M2, 2022; 16 GB RAM) running macOS Tahoe 26.5.1, and each run
-records wall-clock time and peak resident memory in its \texttt{run\_stats.json} metadata. The repository
-scripts are the authoritative workflow for regenerating raw predictions, metric tables, and figures from the
-input datasets.
+runs were executed on a MacBook Air (Apple M2, 2022; 16 GB RAM) running macOS Tahoe 26.5.1. The repository
+scripts provide the workflow for regenerating raw predictions, metric tables, and figures from the input
+datasets.

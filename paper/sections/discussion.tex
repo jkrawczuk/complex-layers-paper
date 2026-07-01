@@ -39,13 +39,14 @@ successive sparse fits and the changing feature pool, not from the particular vo
 This is useful practically: the complex-layer protocol can be interpreted primarily through neuron depth,
 selected-feature behavior, and available-split counts, without relying on a delicate choice of voting weights.
 
-A recurring outcome is the trade-off between signal recovery and feature purity.
-Broader neurons often recovered more informative variables, but they also selected more noise.
-Narrower neurons were cleaner, but they could require several layers before accumulating comparable signal and
-could terminate earlier.
+The synthetic benchmark also shows why predictive accuracy alone is not enough to describe the fitted layers.
+High-feature settings usually recovered more of the 12 informative variables, but they did so by selecting
+broader feature sets that included more noise.
+Low-feature settings selected fewer variables per neuron and were often more selective, but they could need
+several depths to accumulate signal and could terminate earlier.
 This supports reporting feature-recovery and depth diagnostics alongside accuracy, consistent with broader
 feature-selection literature arguing that selected-feature behavior should be evaluated explicitly
-\cite{saeys2007review,nogueira2018stability}.
+\cite{saeys2007review,nogueira2018stability,lukaszuk2024importance}.
 
 Realized depth itself is therefore informative.
 Some colon cancer configurations reached the nominal limit of 31 neurons, whereas the synthetic configurations
