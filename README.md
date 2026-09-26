@@ -139,6 +139,30 @@ heavier than the smoke check and may take substantial time; in the current full 
 and high-feature `cpl` were the longest-running configurations. The generated paper-run bundles are not
 committed to git; the current local full-run output is under `results/paper_runs_v2/`.
 
+## Voting and Margin Experiments
+
+New prediction bundles retain each neuron's raw linear score alongside its predicted label. They also record
+the coefficient L2 norm, inverse norm, unit-score band width, intercept, train/test margin summaries, and
+per-neuron timing. This supports four post-fit voting strategies without retraining the neurons:
+
+- uniform voting;
+- weights based on training-fold balanced accuracy above chance;
+- inverse-L2-norm weights, `1 / ||w||_2`;
+- sample-specific geometric-distance weights, equivalent to summing `score_i(x) / ||w_i||_2`.
+
+After generating a bundle, compute all voting strategies and create the diagnostic figures with:
+
+```bash
+poetry run python scripts/compute_cv_metrics.py --bundle-dir PATH_TO_BUNDLE
+
+MPLBACKEND=Agg poetry run python scripts/generate_voting_experiment_plots.py \
+  --bundle-dir PATH_TO_BUNDLE
+```
+
+Strategy results are written to `metrics/voting_strategy_*.csv`. Margin, timing, and voting-comparison plots
+are written under `figures/voting_experiments/`. For logistic regression, `2 / ||w||_2` is reported as a
+unit-score band width rather than as a maximum-margin SVM quantity.
+
 ## Data
 
 - `data/synthetic_signal.csv` is the synthetic benchmark used in the manuscript.

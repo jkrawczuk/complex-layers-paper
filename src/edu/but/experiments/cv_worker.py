@@ -68,6 +68,24 @@ def standardize_train_test(X_train, X_test):
     return (X_train - mean) / scale, (X_test - mean) / scale
 
 
+def margin_statistics(scores, y_encoded, coef_l2_norm):
+    """Summarize functional and geometric signed margins for one neuron."""
+    scores = np.asarray(scores, dtype=float).reshape(-1)
+    y_pm = np.where(np.asarray(y_encoded) == 1, 1.0, -1.0)
+    functional = y_pm * scores
+    geometric = functional / coef_l2_norm
+    distances = np.abs(scores) / coef_l2_norm
+    return {
+        "functional_margin_mean": float(np.mean(functional)),
+        "functional_margin_median": float(np.median(functional)),
+        "geometric_margin_mean": float(np.mean(geometric)),
+        "geometric_margin_median": float(np.median(geometric)),
+        "distance_to_boundary_mean": float(np.mean(distances)),
+        "distance_to_boundary_median": float(np.median(distances)),
+        "nonpositive_margin_fraction": float(np.mean(functional <= 0.0)),
+    }
+
+
 def run_single_split(task):
     split_idx = task["split_idx"]
     repeat_idx = task["repeat_idx"]
@@ -81,11 +99,13 @@ def run_single_split(task):
     if X is None or y is None:
         raise RuntimeError("Worker data not initialized.")
 
-    fit_start = time.perf_counter()
+    split_start = time.perf_counter()
     X_train = X[train_idx]
     X_test = X[test_idx]
+    preprocessing_start = time.perf_counter()
     if cfg.get("standardize_features", False):
         X_train, X_test = standardize_train_test(X_train, X_test)
+    preprocessing_time_sec = float(time.perf_counter() - preprocessing_start)
 
     clf = ComplexL1NeuronsClassifier(
         n_neurons=cfg["n_neurons"],
@@ -96,11 +116,18 @@ def run_single_split(task):
         random_state=cfg["random_state"],
         verbose=cfg["verbose"],
     )
+    fit_start = time.perf_counter()
     clf.fit(X_train, y[train_idx])
     fit_time_sec = float(time.perf_counter() - fit_start)
 
-    P_test = clf.vote_matrix(X_test)
-    P_train = clf.vote_matrix(X_train)
+    prediction_test_start = time.perf_counter()
+    S_test = clf.score_matrix(X_test)
+    P_test = (S_test >= 0.0).astype(int)
+    prediction_test_time_sec = float(time.perf_counter() - prediction_test_start)
+    prediction_train_start = time.perf_counter()
+    S_train = clf.score_matrix(X_train)
+    P_train = (S_train >= 0.0).astype(int)
+    prediction_train_time_sec = float(time.perf_counter() - prediction_train_start)
     built_n = int(P_test.shape[1])
     counts_full = [len(g) for g in clf.get_feature_groups()]
     feature_groups_full = [np.asarray(g, dtype=int) for g in clf.get_feature_groups()]
@@ -111,6 +138,7 @@ def run_single_split(task):
         getattr(n, "common_objective_", getattr(n, "final_objective_", None))
         for n in clf.neurons_
     ]
+    neuron_fit_times_full = clf.get_neuron_fit_times_sec()
     gt = cfg.get("ground_truth")
 
     y_train = y[train_idx]
@@ -179,12 +207,26 @@ def run_single_split(task):
             neuron_pred_train,
         ):
             raw_by_set_sample[("train", int(sample_index))][f"pred_n{n}"] = int(y_pred)
+        for sample_index, score in zip(train_idx, S_train[:, n - 1]):
+            raw_by_set_sample[("train", int(sample_index))][f"score_n{n}"] = float(score)
         for sample_index, y_true, y_pred in zip(
             test_idx,
             y_test_enc,
             neuron_pred_test,
         ):
             raw_by_set_sample[("test", int(sample_index))][f"pred_n{n}"] = int(y_pred)
+        for sample_index, score in zip(test_idx, S_test[:, n - 1]):
+            raw_by_set_sample[("test", int(sample_index))][f"score_n{n}"] = float(score)
+
+        neuron = clf.neurons_[n - 1]
+        coef = np.asarray(getattr(neuron, "coef_", []), dtype=float).reshape(-1)
+        coef_l2_norm = float(np.linalg.norm(coef, ord=2))
+        if coef_l2_norm <= 1e-12:
+            raise RuntimeError(f"Neuron {n} has a zero L2 coefficient norm after fitting.")
+        intercept_values = np.asarray(getattr(neuron, "intercept_", []), dtype=float).reshape(-1)
+        intercept = float(intercept_values[0]) if intercept_values.size else 0.0
+        train_margin = margin_statistics(S_train[:, n - 1], y_train_enc, coef_l2_norm)
+        test_margin = margin_statistics(S_test[:, n - 1], y_test_enc, coef_l2_norm)
 
         neuron_summary_rows.append(
             {
@@ -220,11 +262,16 @@ def run_single_split(task):
                 else cumulative_recovery["noise_fraction"],
                 "loss": loss_n,
                 "l1_norm": l1_n,
+                "coef_l2_norm": coef_l2_norm,
+                "inverse_l2_norm": 1.0 / coef_l2_norm,
+                "unit_score_band_width": 2.0 / coef_l2_norm,
+                "intercept": intercept,
+                "fit_time_sec": float(neuron_fit_times_full[n - 1]),
+                **{f"train_{k}": v for k, v in train_margin.items()},
+                **{f"test_{k}": v for k, v in test_margin.items()},
             }
         )
 
-        neuron = clf.neurons_[n - 1]
-        coef = np.asarray(getattr(neuron, "coef_", []), dtype=float).reshape(-1)
         input_features = input_feature_groups_full[n - 1]
         if coef.size:
             coef_by_feature = {
@@ -319,6 +366,10 @@ def run_single_split(task):
         "n_neurons_requested": cfg["n_neurons"],
         "n_neurons_built_in_split": built_n,
         "fit_time_sec": round(fit_time_sec, 6),
+        "preprocessing_time_sec": round(preprocessing_time_sec, 6),
+        "prediction_train_time_sec": round(prediction_train_time_sec, 6),
+        "prediction_test_time_sec": round(prediction_test_time_sec, 6),
+        "split_wall_time_sec": round(float(time.perf_counter() - split_start), 6),
         "minority_class": str(minority_label),
         "y_train_size": int(len(train_idx)),
         "y_test_size": int(len(test_idx)),

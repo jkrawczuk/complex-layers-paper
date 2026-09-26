@@ -241,7 +241,7 @@ def write_per_split_metrics_csv(csv_path: Path, rows):
         "class_label_1",
     ]
     with csv_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
@@ -259,6 +259,10 @@ def write_per_split_summary_csv(csv_path: Path, rows):
         "n_neurons_requested",
         "n_neurons_built_in_split",
         "fit_time_sec",
+        "preprocessing_time_sec",
+        "prediction_train_time_sec",
+        "prediction_test_time_sec",
+        "split_wall_time_sec",
         "minority_class",
         "y_train_size",
         "y_test_size",
@@ -288,7 +292,8 @@ def write_raw_predictions_csv(csv_path: Path, rows):
         "sample_index",
         "y_true",
     ]
-    fieldnames.extend(f"pred_n{n}" for n in range(1, max_n + 1))
+    for n in range(1, max_n + 1):
+        fieldnames.extend([f"pred_n{n}", f"score_n{n}"])
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -316,6 +321,25 @@ def write_neuron_summary_csv(csv_path: Path, rows):
         "cumulative_noise_fraction",
         "loss",
         "l1_norm",
+        "coef_l2_norm",
+        "inverse_l2_norm",
+        "unit_score_band_width",
+        "intercept",
+        "fit_time_sec",
+        "train_functional_margin_mean",
+        "train_functional_margin_median",
+        "train_geometric_margin_mean",
+        "train_geometric_margin_median",
+        "train_distance_to_boundary_mean",
+        "train_distance_to_boundary_median",
+        "train_nonpositive_margin_fraction",
+        "test_functional_margin_mean",
+        "test_functional_margin_median",
+        "test_geometric_margin_mean",
+        "test_geometric_margin_median",
+        "test_distance_to_boundary_mean",
+        "test_distance_to_boundary_median",
+        "test_nonpositive_margin_fraction",
     ]
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)

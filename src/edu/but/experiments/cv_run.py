@@ -1,8 +1,13 @@
 import concurrent.futures
 import json
+import platform
+import sys
 import time
 from pathlib import Path
 
+import numpy as np
+import scipy
+import sklearn
 from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold
 from tqdm import tqdm
 
@@ -11,6 +16,7 @@ from edu.but.experiments.cv_io import (
     save_run_stats_json,
     update_run_stats_summary,
     write_neuron_summary_csv,
+    write_per_split_summary_csv,
     write_raw_predictions_csv,
     write_selected_features_csv,
 )
@@ -121,7 +127,16 @@ def run_cv_predictions(args):
     max_built = 0
     for res in split_results:
         max_built = max(max_built, int(res["built_n"]))
-        split_summaries.append(res["split_summary"])
+        split_summaries.append(
+            {
+                "dataset": data_path.stem,
+                "model": args.base_model,
+                "C": args.C,
+                "class_weight": args.class_weight,
+                "n_neurons_requested": args.n_neurons,
+                **res["split_summary"],
+            }
+        )
         raw_prediction_rows.extend(
             row for row in res["raw_prediction_rows"]
         )
@@ -132,9 +147,11 @@ def run_cv_predictions(args):
             row for row in res["selected_feature_rows"]
         )
 
+    artifact_write_start = time.perf_counter()
     write_raw_predictions_csv(out_dir / "raw_predictions.csv", raw_prediction_rows)
     write_neuron_summary_csv(out_dir / "neuron_summary.csv", neuron_summary_rows)
     write_selected_features_csv(out_dir / "selected_features.csv", selected_feature_rows)
+    write_per_split_summary_csv(out_dir / "split_timings.csv", split_summaries)
     class_labels = {}
     if split_summaries:
         class_labels = {
@@ -143,6 +160,7 @@ def run_cv_predictions(args):
         }
     with (out_dir / "class_labels.json").open("w", encoding="utf-8") as f:
         json.dump(class_labels, f, indent=2)
+    artifact_write_time_sec = float(time.perf_counter() - artifact_write_start)
 
     wall_time_sec = float(time.perf_counter() - run_start)
     stats = {
@@ -159,14 +177,26 @@ def run_cv_predictions(args):
         "cv_total_folds": total_folds,
         "jobs": args.jobs,
         "wall_time_sec": round(wall_time_sec, 6),
+        "artifact_write_time_sec": round(artifact_write_time_sec, 6),
+        "sum_split_fit_time_sec": round(
+            sum(float(row["fit_time_sec"]) for row in split_summaries), 6
+        ),
         "max_rss_gb": round(float(max_rss_bytes_from_rusage() / (1024 ** 3)), 6),
         "run_dir": str(out_dir),
         "raw_predictions_path": str(out_dir / "raw_predictions.csv"),
         "neuron_summary_path": str(out_dir / "neuron_summary.csv"),
         "selected_features_path": str(out_dir / "selected_features.csv"),
+        "split_timings_path": str(out_dir / "split_timings.csv"),
         "class_labels_path": str(out_dir / "class_labels.json"),
         "ground_truth_metadata_path": None if ground_truth is None else ground_truth["_path"],
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "environment": {
+            "python": sys.version.split()[0],
+            "numpy": np.__version__,
+            "scipy": scipy.__version__,
+            "scikit_learn": sklearn.__version__,
+            "platform": platform.platform(),
+        },
     }
     stats_path = save_run_stats_json(out_dir, stats)
     summary_path = update_run_stats_summary(data_path.stem)

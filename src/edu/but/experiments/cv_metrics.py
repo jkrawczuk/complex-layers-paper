@@ -1,5 +1,6 @@
 import csv
 import json
+import time
 from collections import defaultdict
 from pathlib import Path
 
@@ -27,6 +28,25 @@ _NEURON_SUMMARY_KEYS = [
     "cumulative_noise_fraction",
     "loss",
     "l1_norm",
+    "coef_l2_norm",
+    "inverse_l2_norm",
+    "unit_score_band_width",
+    "intercept",
+    "fit_time_sec",
+    "train_functional_margin_mean",
+    "train_functional_margin_median",
+    "train_geometric_margin_mean",
+    "train_geometric_margin_median",
+    "train_distance_to_boundary_mean",
+    "train_distance_to_boundary_median",
+    "train_nonpositive_margin_fraction",
+    "test_functional_margin_mean",
+    "test_functional_margin_median",
+    "test_geometric_margin_mean",
+    "test_geometric_margin_median",
+    "test_distance_to_boundary_mean",
+    "test_distance_to_boundary_median",
+    "test_nonpositive_margin_fraction",
 ]
 
 
@@ -86,6 +106,7 @@ def _metadata_from_run_stats(bundle_dir: Path, fallback_rows):
 
 def _pivot_predictions(raw_rows):
     grouped = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    scores = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
     truth = defaultdict(lambda: defaultdict(dict))
     for row in raw_rows:
         key = _split_key(row)
@@ -97,7 +118,12 @@ def _pivot_predictions(raw_rows):
                 continue
             n_neuron = int(col.removeprefix("pred_n"))
             grouped[key][set_name][n_neuron][sample_index] = value
-    return grouped, truth
+        for col, value in row.items():
+            if not col.startswith("score_n") or value in (None, ""):
+                continue
+            n_neuron = int(col.removeprefix("score_n"))
+            scores[key][set_name][n_neuron][sample_index] = float(value)
+    return grouped, scores, truth
 
 
 def _load_neuron_summary(rows):
@@ -167,6 +193,61 @@ def _quality_weights(train_balanced_by_n, n_neurons):
     if total <= 0.0:
         return [1.0 / n_neurons for _ in range(n_neurons)]
     return [v / total for v in raw]
+
+
+def _inverse_norm_weights(neuron_summary, split_key, n_neurons):
+    raw = [neuron_summary[(split_key, n)]["inverse_l2_norm"] for n in range(1, n_neurons + 1)]
+    if any(value is None or not np.isfinite(value) or value <= 0.0 for value in raw):
+        raise ValueError(f"Invalid inverse L2 norm for split {split_key} at depth {n_neurons}.")
+    total = float(sum(raw))
+    return [float(value / total) for value in raw]
+
+
+def _distance_vote(scores_by_n, preds_by_n, sample_indices, norms, n_neurons):
+    out = []
+    for sample_index in sample_indices:
+        signed_sum = sum(
+            float(scores_by_n[n][sample_index]) / float(norms[n - 1])
+            for n in range(1, n_neurons + 1)
+        )
+        if signed_sum > 0.0:
+            out.append("1")
+        elif signed_sum < 0.0:
+            out.append("0")
+        else:
+            out.append(preds_by_n[1][sample_index])
+    return out
+
+
+def _strategy_metric_row(meta, strategy, split_key, n, minority_label, weights,
+                         elapsed_sec, y_train, train_pred, y_test, test_pred,
+                         minority_encoded):
+    metrics_start = time.perf_counter()
+    train_metrics = classification_metrics(y_train, train_pred, minority_encoded)
+    test_metrics = classification_metrics(y_test, test_pred, minority_encoded)
+    metric_time_sec = float(time.perf_counter() - metrics_start)
+    return {
+        **meta,
+        "weight_metric": strategy,
+        "split_id": split_key[0],
+        "repeat_id": split_key[1],
+        "fold_id": split_key[2],
+        "n_neurons": n,
+        "minority_class": minority_label,
+        "weights": weights,
+        "aggregation_time_sec": elapsed_sec,
+        "metric_time_sec": metric_time_sec,
+        "vote_accuracy": test_metrics["accuracy"],
+        "vote_balanced_accuracy": test_metrics["balanced_accuracy"],
+        "vote_minority_precision": test_metrics["minority_precision"],
+        "vote_minority_recall": test_metrics["minority_recall"],
+        "vote_minority_f1": test_metrics["minority_f1"],
+        "vote_train_accuracy": train_metrics["accuracy"],
+        "vote_train_balanced_accuracy": train_metrics["balanced_accuracy"],
+        "vote_train_minority_precision": train_metrics["minority_precision"],
+        "vote_train_minority_recall": train_metrics["minority_recall"],
+        "vote_train_minority_f1": train_metrics["minority_f1"],
+    }
 
 
 def _aggregate_per_split_rows(rows):
@@ -263,6 +344,8 @@ def _write_weighted_per_split(path: Path, rows):
         "n_neurons",
         "minority_class",
         "weights",
+        "aggregation_time_sec",
+        "metric_time_sec",
         "vote_accuracy",
         "vote_balanced_accuracy",
         "vote_minority_precision",
@@ -286,6 +369,10 @@ def _write_weighted_results(path: Path, rows):
         "weight_metric",
         "n_neurons",
         "coverage_n",
+        "aggregation_time_sec",
+        "aggregation_time_sec_std",
+        "metric_time_sec",
+        "metric_time_sec_std",
         "vote_accuracy",
         "vote_accuracy_std",
         "vote_balanced_accuracy",
@@ -327,6 +414,8 @@ def _aggregate_weighted_rows(rows):
             "coverage_n": len(n_rows),
         }
         for key in [
+            "aggregation_time_sec",
+            "metric_time_sec",
             "vote_accuracy",
             "vote_balanced_accuracy",
             "vote_minority_precision",
@@ -354,11 +443,12 @@ def compute_cv_metrics(bundle_dir: Path):
 
     meta = _metadata_from_run_stats(bundle_dir, raw_rows)
     class_labels = _load_class_labels(bundle_dir)
-    predictions, truth = _pivot_predictions(raw_rows)
+    predictions, scores, truth = _pivot_predictions(raw_rows)
     neuron_summary = _load_neuron_summary(neuron_rows)
 
     per_split_rows = []
     weighted_rows = []
+    strategy_rows = []
     for key in sorted(predictions):
         train_samples = sorted(truth[key]["train"])
         test_samples = sorted(truth[key]["test"])
@@ -382,8 +472,10 @@ def compute_cv_metrics(bundle_dir: Path):
             train_balanced_by_n[n] = neuron_train_metrics["balanced_accuracy"]
 
         for n in range(1, built_n + 1):
+            aggregation_start = time.perf_counter()
             train_uniform = _uniform_vote(predictions[key]["train"], train_samples, n)
             test_uniform = _uniform_vote(predictions[key]["test"], test_samples, n)
+            uniform_elapsed = float(time.perf_counter() - aggregation_start)
             train_vote_metrics = classification_metrics(y_train, train_uniform, minority_encoded)
             test_vote_metrics = classification_metrics(y_test, test_uniform, minority_encoded)
             neuron_train_metrics = neuron_train_metrics_by_n[n]
@@ -430,11 +522,23 @@ def compute_cv_metrics(bundle_dir: Path):
                 }
             )
 
+            strategy_rows.append(
+                _strategy_metric_row(
+                    meta, "uniform", key, n, minority_label, "uniform",
+                    uniform_elapsed, y_train, train_uniform, y_test, test_uniform,
+                    minority_encoded,
+                )
+            )
+
+            aggregation_start = time.perf_counter()
             weights = _quality_weights(train_balanced_by_n, n)
             train_weighted = _weighted_vote(predictions[key]["train"], train_samples, weights)
             test_weighted = _weighted_vote(predictions[key]["test"], test_samples, weights)
+            quality_elapsed = float(time.perf_counter() - aggregation_start)
+            metrics_start = time.perf_counter()
             train_weighted_metrics = classification_metrics(y_train, train_weighted, minority_encoded)
             test_weighted_metrics = classification_metrics(y_test, test_weighted, minority_encoded)
+            metric_time_sec = float(time.perf_counter() - metrics_start)
             weighted_rows.append(
                 {
                     **meta,
@@ -445,6 +549,8 @@ def compute_cv_metrics(bundle_dir: Path):
                     "n_neurons": n,
                     "minority_class": minority_label,
                     "weights": ";".join(f"{w:.8g}" for w in weights),
+                    "aggregation_time_sec": quality_elapsed,
+                    "metric_time_sec": metric_time_sec,
                     "vote_accuracy": test_weighted_metrics["accuracy"],
                     "vote_balanced_accuracy": test_weighted_metrics["balanced_accuracy"],
                     "vote_minority_precision": test_weighted_metrics["minority_precision"],
@@ -457,6 +563,45 @@ def compute_cv_metrics(bundle_dir: Path):
                     "vote_train_minority_f1": train_weighted_metrics["minority_f1"],
                 }
             )
+            strategy_rows.append(weighted_rows[-1].copy())
+
+            if scores[key]["train"]:
+                aggregation_start = time.perf_counter()
+                inverse_weights = _inverse_norm_weights(neuron_summary, key, n)
+                train_inverse = _weighted_vote(
+                    predictions[key]["train"], train_samples, inverse_weights
+                )
+                test_inverse = _weighted_vote(
+                    predictions[key]["test"], test_samples, inverse_weights
+                )
+                inverse_elapsed = float(time.perf_counter() - aggregation_start)
+                strategy_rows.append(
+                    _strategy_metric_row(
+                        meta, "inverse_l2_norm", key, n, minority_label,
+                        ";".join(f"{w:.8g}" for w in inverse_weights), inverse_elapsed,
+                        y_train, train_inverse, y_test, test_inverse, minority_encoded,
+                    )
+                )
+
+                norms = [
+                    neuron_summary[(key, depth)]["coef_l2_norm"]
+                    for depth in range(1, n + 1)
+                ]
+                aggregation_start = time.perf_counter()
+                train_distance = _distance_vote(
+                    scores[key]["train"], predictions[key]["train"], train_samples, norms, n
+                )
+                test_distance = _distance_vote(
+                    scores[key]["test"], predictions[key]["test"], test_samples, norms, n
+                )
+                distance_elapsed = float(time.perf_counter() - aggregation_start)
+                strategy_rows.append(
+                    _strategy_metric_row(
+                        meta, "sample_distance", key, n, minority_label,
+                        "sample_specific", distance_elapsed, y_train, train_distance,
+                        y_test, test_distance, minority_encoded,
+                    )
+                )
 
     metrics_dir = bundle_dir / "metrics"
     metrics_dir.mkdir(parents=True, exist_ok=True)
@@ -467,6 +612,13 @@ def compute_cv_metrics(bundle_dir: Path):
         metrics_dir / "weighted_vote_results.csv",
         _aggregate_weighted_rows(weighted_rows),
     )
+    _write_weighted_per_split(
+        metrics_dir / "voting_strategy_per_split_metrics.csv", strategy_rows
+    )
+    _write_weighted_results(
+        metrics_dir / "voting_strategy_results.csv",
+        _aggregate_weighted_rows(strategy_rows),
+    )
 
     with (metrics_dir / "metrics_config.json").open("w", encoding="utf-8") as f:
         json.dump(
@@ -474,6 +626,13 @@ def compute_cv_metrics(bundle_dir: Path):
                 "source_bundle_dir": str(bundle_dir),
                 "weighting": "q_i = max(0, train_neuron_balanced_accuracy_i - 0.5)",
                 "weighted_vote_tie_break": "first neuron prediction",
+                "voting_strategies": [
+                    "uniform",
+                    "train_balanced_accuracy_minus_chance",
+                    "inverse_l2_norm",
+                    "sample_distance",
+                ],
+                "sample_distance_formula": "sum_i score_i(x) / ||coef_i||_2",
             },
             f,
             indent=2,

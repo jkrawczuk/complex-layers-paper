@@ -1,3 +1,4 @@
+import time
 from typing import Optional, List
 import numpy as np
 
@@ -192,6 +193,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         remaining_features = np.arange(self.n_features_in_, dtype=int)
 
         self.neurons_: List = []
+        self.neuron_fit_times_sec_: List[float] = []
         self._input_feature_groups_: List[np.ndarray] = []   # cechy, na których neuron był trenowany
         self.feature_groups_: List[np.ndarray] = []          # cechy z niezerowymi wagami (dla interpretacji)
 
@@ -211,7 +213,9 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
 
             X_sub = X[:, input_features]
             sample_weight = self._build_sample_weight(y_enc)
+            neuron_fit_start = time.perf_counter()
             base_clf.fit(X_sub, y_enc, sample_weight=sample_weight)
+            neuron_fit_time_sec = float(time.perf_counter() - neuron_fit_start)
 
             coef = getattr(base_clf, "coef_", None)
             if coef is None:
@@ -241,6 +245,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
                 print(f"[ComplexL1] Neuron {i+1} wybrał {selected_features.size} cech.")
 
             self.neurons_.append(base_clf)
+            self.neuron_fit_times_sec_.append(neuron_fit_time_sec)
             self._input_feature_groups_.append(input_features)
             self.feature_groups_.append(selected_features)
 
@@ -309,6 +314,17 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         self._check_is_fitted()
         return self._vote_matrix(X)
 
+    def score_matrix(self, X):
+        """Return one raw linear decision score per sample and fitted neuron."""
+        self._check_is_fitted()
+        X = check_array(X, accept_sparse="csr")
+        all_scores = []
+        for clf, input_idx in zip(self.neurons_, self._input_feature_groups_):
+            X_sub = X[:, input_idx]
+            scores = np.asarray(clf.decision_function(X_sub), dtype=float).reshape(-1)
+            all_scores.append(scores.reshape(-1, 1))
+        return np.hstack(all_scores)
+
     def predict_with_votes(self, P, n_neurons: int):
         self._check_is_fitted()
         P = np.asarray(P)
@@ -338,6 +354,11 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         """Zwraca listę wytrenowanych bazowych klasyfikatorów (neuronów)."""
         self._check_is_fitted()
         return self.neurons_
+
+    def get_neuron_fit_times_sec(self) -> List[float]:
+        """Return wall-clock fit time for each successfully fitted neuron."""
+        self._check_is_fitted()
+        return list(self.neuron_fit_times_sec_)
 
     def _predict_from_votes(self, P, n_neurons: int):
         if n_neurons < 1:
