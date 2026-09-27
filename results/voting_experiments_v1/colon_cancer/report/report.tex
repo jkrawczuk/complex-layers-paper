@@ -1,0 +1,244 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[polish,english]{babel}
+\usepackage[a4paper,margin=2.1cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage{caption}
+
+\graphicspath{{../figures/}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+\title{Eksperymenty z ważonym głosowaniem i marginesami\\
+\large Complex Layers na zbiorze colon cancer}
+\author{Jerzy Krawczuk}
+\date{27 września 2026}
+
+\begin{document}
+\selectlanguage{polish}
+\maketitle
+
+\begin{abstract}
+Raport podsumowuje dodatkowe eksperymenty wykonane po wysłaniu artykułu do recenzji. Nie stanowią one
+zmiany wysłanej wersji artykułu. Porównano cztery sposoby agregacji głosów kolejnych neuronów oraz
+przeanalizowano szerokość formalnego pasa, empiryczny signed geometric margin i czas trenowania.
+Eksperyment przeprowadzono na zbiorze colon cancer za pomocą 10-krotnej walidacji krzyżowej powtórzonej
+10 razy, osobno dla modeli CPL, SVM i regresji logistycznej w reżimach low- i high-feature.
+\end{abstract}
+
+\section{Konfiguracja eksperymentu}
+
+Zbiór colon cancer zawiera 62 obiekty, 2000 cech ekspresji genów i dwie klasy diagnostyczne. Dla każdej
+konfiguracji zastosowano repeated stratified cross-validation: 10 foldów i 10 powtórzeń, łącznie 100 splitów.
+Standaryzację dopasowywano wyłącznie na części treningowej każdego splitu. Kolejny neuron otrzymywał pulę
+cech pomniejszoną o cechy wybrane przez neurony wcześniejsze.
+
+Użyto tych samych parametrów regularyzacji co w eksperymentach artykułu:
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Model & $C_{\mathrm{low}}$ & $C_{\mathrm{high}}$ \\
+\midrule
+CPL & 2.0 & 8.0 \\
+SVM & 1.3 & 5.2 \\
+Logistic regression & 3.4 & 5.2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Wszystkie modele stosują regularyzację L1. Różnią się funkcją straty: CPL używa hinge loss rozwiązywanego
+jako program liniowy, SVM używa squared hinge loss, a regresja logistyczna---logistic loss. Norma L2 nie jest
+karą optymalizacyjną; służy wyłącznie do późniejszego pomiaru geometrii wytrenowanego neuronu.
+
+\section{Cztery sposoby głosowania}
+
+Niech wynik liniowy neuronu $i$ będzie równy
+\[
+f_i(x)=w_i^\top x+b_i.
+\]
+
+Porównano następujące strategie:
+
+\begin{enumerate}
+\item \textbf{Uniform voting}: każdy neuron oddaje głos o tej samej wadze.
+
+\item \textbf{Training-BA voting}: stała waga neuronu jest wyznaczana wyłącznie z jego balanced accuracy
+na foldzie treningowym:
+\[
+q_i=\max(0,\mathrm{BA}^{\mathrm{train}}_i-0.5),
+\qquad
+\alpha_i=\frac{q_i}{\sum_jq_j}.
+\]
+Jeżeli wszystkie $q_i$ są równe zero, stosowane są wagi jednakowe.
+
+\item \textbf{Inverse-L2-norm voting}: propozycja oparta na formalnej szerokości pasa. Stała waga neuronu
+jest proporcjonalna do
+\[
+\alpha_i\propto\frac{1}{\lVert w_i\rVert_2}.
+\]
+
+\item \textbf{Sample-distance voting}: waga zależy od klasyfikowanego obiektu. Siła głosu wynosi
+\[
+D_i(x)=\frac{|f_i(x)|}{\lVert w_i\rVert_2},
+\]
+a końcowa decyzja jest równoważna znakowi sumy
+\[
+\sum_i\frac{f_i(x)}{\lVert w_i\rVert_2}.
+\]
+\end{enumerate}
+
+Wszystkie strategie są obliczane z tych samych dopasowanych neuronów. Zmiana sposobu głosowania nie wymaga
+ponownego treningu i nie korzysta z etykiet testowych.
+
+\section{Trzy różne wielkości geometryczne}
+
+W interpretacji należy konsekwentnie rozróżniać trzy wielkości:
+
+\begin{center}
+\begin{tabular}{p{4.1cm}p{4.2cm}p{5.4cm}}
+\toprule
+Wielkość & Wzór & Znaczenie \\
+\midrule
+Szerokość formalnego pasa & $2/\lVert w_i\rVert_2$ & Własność skali współczynników; zawsze dodatnia. \\
+Odległość próbki od granicy & $|f_i(x)|/\lVert w_i\rVert_2$ & Nieujemna siła głosu dla konkretnej próbki. \\
+Signed geometric margin & $y f_i(x)/\lVert w_i\rVert_2$ & Miara diagnostyczna; wartość ujemna oznacza błędną klasyfikację. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Szerokość formalnego pasa może rosnąć, gdy $\lVert w_i\rVert_2$ dąży do zera. Nie musi to oznaczać lepszej
+separacji. Późny neuron może być niemal płaski, mieć bardzo szeroki formalny pas, a jednocześnie klasyfikować
+obiekty testowe źle.
+
+\section{Szerokość formalnego pasa}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_margin_width_panel.png}
+\caption{Mediana szerokości formalnego pasa $2/\lVert w\rVert_2$ w kolejnych neuronach. Zacieniowany obszar
+przedstawia IQR pomiędzy dostępnymi splitami. Oś pionowa ma skalę logarytmiczną. Dla regresji logistycznej
+wielkość jest interpretowana jako unit-score band width, a nie klasyczny maksymalny margines SVM.}
+\end{figure}
+
+Dla SVM-low oraz obu konfiguracji regresji logistycznej szerokość formalnego pasa gwałtownie rośnie w późnych
+neuronach. Wynika to z bardzo małej normy współczynników. CPL zachowuje się inaczej: CPL-high utrzymuje
+względnie stabilną szerokość, a CPL-low wykazuje nieregularne wahania bez jednoznacznego trendu.
+
+\section{Signed geometric margin na train i test}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_geometric_margin_panel.png}
+\caption{Signed geometric margin na zbiorach treningowych i testowych. Linia przedstawia medianę median
+splitowych, a zacieniowany obszar---IQR pomiędzy splitami.}
+\end{figure}
+
+Dla każdego splitu, neuronu i obiektu obliczono
+\[
+M_{s,k}(x)=\frac{y f_k(x)}{\lVert w_k\rVert_2}.
+\]
+W pojedynczym foldzie testowym znajdowało się około 6--7 obiektów. Najpierw obliczano medianę po obiektach
+w danym splicie, a następnie medianę tych wartości po maksymalnie 100 splitach. Pas pokazuje 25. i 75.
+percentyl median splitowych.
+
+Ujemna pomarańczowa linia oznacza, że w co najmniej połowie dostępnych splitów mediana signed margin na teście
+była ujemna. Późne neurony nadal mogą zachowywać dodatni margines treningowy, podczas gdy margines testowy
+spada do zera lub poniżej. Jest to sygnał pogarszającej się generalizacji i wyczerpywania stabilnego sygnału.
+
+\section{Wyniki czterech sposobów głosowania}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_voting_strategy_panel.png}
+\caption{Średnia test accuracy czterech sposobów głosowania w funkcji liczby neuronów. Punkty późnych warstw
+należy interpretować razem z liczbą splitów, w których dana głębokość była dostępna.}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{llrr@{\qquad}rr}
+\toprule
+Model & Reżim & \multicolumn{2}{c}{Uniform best} & \multicolumn{2}{c}{Sample-distance best} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
+ & & Accuracy & $n$ & Accuracy & $n$ \\
+\midrule
+CPL & low  & 0.7710 & 4 & \textbf{0.7769} & 2 \\
+CPL & high & 0.8493 & 4 & \textbf{0.8533} & 5 \\
+SVM & low  & 0.8545 & 3 & \textbf{0.8636} & 3 \\
+SVM & high & 0.8514 & 3 & \textbf{0.8610} & 3 \\
+Logreg & low  & \textbf{0.8524} & 1 & 0.8524 & 1 \\
+Logreg & high & \textbf{0.8667} & 1 & 0.8667 & 1 \\
+\bottomrule
+\end{tabular}
+\caption{Najlepsza średnia test accuracy dla uniform i sample-distance voting. Maksimum wybierano po
+głębokości, dlatego tabela ma charakter opisowy, a nie jest niezależną oceną doboru głębokości.}
+\end{table}
+
+Dla CPL najlepiej zachowuje się sample-distance voting we wczesnych warstwach. W CPL-low osiąga 0.7769 dla
+$n=2$, a w CPL-high 0.8533 dla $n=5$. Samo inverse-L2-norm weighting nie daje poprawy: premiuje późne neurony
+o normie bliskiej zeru, mimo że ich empiryczny margines testowy i accuracy maleją. Dla regresji logistycznej
+najlepszy pozostaje pierwszy neuron.
+
+\section{Czas obliczeń}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_neuron_fit_time_panel.png}
+\caption{Mediana czasu trenowania kolejnych neuronów; pas przedstawia IQR pomiędzy dostępnymi splitami.}
+\end{figure}
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Konfiguracja & Czas całego runu [s] & Przybliżony czas \\
+\midrule
+SVM low & 20.1 & 20 s \\
+SVM high & 36.8 & 37 s \\
+CPL low & 654.3 & 10.9 min \\
+CPL high & 2286.6 & 38.1 min \\
+Logreg low & 528.7 & 8.8 min \\
+Logreg high & 1798.7 & 30.0 min \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Czas samego głosowania i obliczania metryk jest niewielki w porównaniu z dopasowaniem neuronów. Cztery
+strategie mogą być obliczane po treningu z zapisanych score'ów, predykcji i norm współczynników.
+
+\section{Ograniczenia interpretacji}
+
+\begin{itemize}
+\item Późny neuron nie zawsze powstaje we wszystkich 100 splitach. Dotyczy to szczególnie CPL-low i regresji
+logistycznej. Końcowe punkty mogą więc opierać się na małej i selektywnej części splitów.
+\item Fold testowy zawiera tylko około 6--7 obiektów. Zastosowanie median ogranicza wpływ wartości odstających,
+ale pojedyncza mediana splitowa nadal ma charakter dyskretny i zmienny.
+\item Regresja logistyczna wielokrotnie osiągała limit 5000 iteracji. Wyniki logreg należy traktować jako
+wymagające dodatkowej kontroli zbieżności przed formułowaniem silnych wniosków.
+\item Wybór najlepszej głębokości na podstawie tych samych wyników CV ma charakter eksploracyjny. Do oceny
+procedury automatycznego wyboru głębokości potrzebna byłaby walidacja zagnieżdżona albo niezależny zbiór.
+\item Formalna szerokość $2/\lVert w\rVert_2$ nie jest samodzielną miarą jakości klasyfikatora, szczególnie
+w modelach z karą L1 i soft-margin.
+\end{itemize}
+
+\section{Wnioski}
+
+Usuwanie cech powoduje, że kolejne neurony pracują na coraz słabszej puli sygnału. Empiryczny signed geometric
+margin na teście zazwyczaj maleje szybciej niż margines treningowy. Jednocześnie formalna szerokość pasa może
+rosnąć wskutek zanikania normy współczynników. Wyjaśnia to, dlaczego ważenie wyłącznie przez
+$1/\lVert w\rVert_2$ nie poprawia wyników.
+
+Najbardziej obiecującą strategią dla CPL jest sample-distance voting, szczególnie w płytkiej warstwie liczącej
+około 2--5 neuronów. Łączy ono kierunek głosu z odległością konkretnej próbki od granicy, dzięki czemu nie
+interpretuje automatycznie małej normy współczynników jako wysokiej jakości neuronu.
+
+\end{document}
