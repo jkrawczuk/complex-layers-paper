@@ -148,6 +148,60 @@ def voting_panel():
     return path
 
 
+def paired_accuracy_difference_panel():
+    fig, axes = setup_axes(
+        "Colon cancer: paired test-accuracy difference vs uniform voting",
+        r"mean paired $\Delta$ accuracy (95% bootstrap interval)",
+    )
+    compared = (
+        "train_balanced_accuracy_minus_chance",
+        "inverse_l2_norm",
+        "sample_distance",
+    )
+    rng = np.random.default_rng(20260927)
+    for row, regime in enumerate(REGIMES):
+        for col, model in enumerate(MODELS):
+            rows = read_csv(
+                RESULTS / model / regime / "metrics" / "voting_strategy_per_split_metrics.csv"
+            )
+            by_strategy = defaultdict(dict)
+            for item in rows:
+                key = (int(item["split_id"]), int(item["n_neurons"]))
+                by_strategy[item["weight_metric"]][key] = float(item["vote_accuracy"])
+            ax = axes[row, col]
+            baseline = by_strategy["uniform"]
+            for strategy in compared:
+                grouped = defaultdict(list)
+                for key, value in by_strategy[strategy].items():
+                    if key in baseline:
+                        grouped[key[1]].append(value - baseline[key])
+                depth = np.asarray(sorted(grouped), dtype=int)
+                means = []
+                lows = []
+                highs = []
+                for n in depth:
+                    delta = np.asarray(grouped[n], dtype=float)
+                    means.append(float(np.mean(delta)))
+                    if delta.size == 1:
+                        lows.append(float(delta[0]))
+                        highs.append(float(delta[0]))
+                    else:
+                        samples = rng.choice(delta, size=(5000, delta.size), replace=True).mean(axis=1)
+                        lows.append(float(np.quantile(samples, 0.025)))
+                        highs.append(float(np.quantile(samples, 0.975)))
+                ax.plot(
+                    depth, means, color=COLORS[strategy], marker="o", markersize=2.5,
+                    linewidth=1.4, label=LABELS[strategy],
+                )
+                ax.fill_between(depth, lows, highs, color=COLORS[strategy], alpha=0.10)
+            ax.axhline(0.0, color="black", linewidth=0.8)
+            ax.legend(fontsize=7)
+    path = OUT / "colon_paired_accuracy_difference_panel.png"
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+    return path
+
+
 def timing_panel():
     fig, axes = setup_axes(
         "Colon cancer: fit time of successive neurons",
@@ -215,6 +269,7 @@ def main():
         margin_width_panel(),
         geometric_margin_panel(),
         voting_panel(),
+        paired_accuracy_difference_panel(),
         feature_count_panel(),
         coverage_panel(),
         timing_panel(),
