@@ -358,6 +358,49 @@ gdy formalna szerokość pasa dla SVM i regresji logistycznej może silnie rosn�
 stabilną normę, ale również wykazuje stopniowe pogorszenie marginesu testowego. Oznacza to, że w soft-margin
 nie należy utożsamiać wzrostu $2/\lVert w\rVert_2$ ze wzrostem jakości separacji.
 
+\section{Główne obserwacje i hipotezy badawcze}
+
+Poniższe punkty zbierają najważniejsze wnioski w formie, która może stanowić punkt wyjścia do dalszych
+eksperymentów. Należy rozróżnić wniosek wynikający z konstrukcji matematycznej od obserwacji empirycznych na
+jednym zbiorze danych:
+
+\begin{enumerate}
+\item \textbf{Nierosnący optymalny hard margin (wynik teoretyczny).}
+Przy ustalonym zbiorze treningowym, tej samej normalizacji i zagnieżdżonych zbiorach dostępnych cech najlepszy
+osiągalny hard margin nie może wzrosnąć w następnej warstwie. Usunięcie cech zawęża klasę dopuszczalnych
+separatorów.
+
+\item \textbf{Rosnący formalny pas nie musi oznaczać lepszego separatora (mechanizm soft-margin).}
+Przy regularyzacji L1 optymalizator może zaakceptować większą stratę w zamian za mniejszą normę
+współczynników. Wtedy $2/\lVert w\rVert_2$ rośnie, chociaż accuracy oraz empiryczny signed margin maleją.
+Szczególnie szeroki pas może więc wskazywać na neuron niemal płaski, a nie na mocny klasyfikator.
+
+\item \textbf{Margines testowy pogarsza się szybciej niż treningowy (obserwacja empiryczna).}
+W badanych konfiguracjach późne neurony często zachowują dodatni signed margin na treningu, podczas gdy
+mediana na teście zbliża się do zera lub staje się ujemna. Jest to zgodne z hipotezą stopniowego wyczerpywania
+stabilnego sygnału i narastania luki generalizacyjnej.
+
+\item \textbf{Dostępność późnych neuronów jest selektywna (obserwacja i problem metodologiczny).}
+Nie każdy split pozwala zbudować taką samą liczbę neuronów. Statystyki późnych warstw CPL-low, SVM-low i
+regresji logistycznej są zatem obliczane na coraz mniejszej, niereprezentatywnej podgrupie splitów. Coverage
+powinno być zawsze raportowane razem z krzywymi zależnymi od głębokości.
+
+\item \textbf{Ważenie samą odwrotnością normy może premiować słabe neurony (obserwacja empiryczna).}
+Waga proporcjonalna do $1/\lVert w\rVert_2$ staje się bardzo duża, gdy współczynniki późnego neuronu zanikają.
+Eksperyment pokazuje, że taka szerokość formalnego pasa nie jest wystarczającą miarą wiarygodności głosu i
+może pogarszać wynik agregacji.
+
+\item \textbf{Sample-distance voting jest obiecujące dla płytkich CPL (wynik pilotażowy).}
+W obu konfiguracjach CPL najlepszą średnią accuracy uzyskało głosowanie oparte na
+$f_i(x)/\lVert w_i\rVert_2$: dla CPL-low przy dwóch, a dla CPL-high przy pięciu neuronach. Wynik wymaga
+potwierdzenia na innych zbiorach oraz oceny z wyborem głębokości wykonywanym w wewnętrznej walidacji.
+\end{enumerate}
+
+Pierwsze dwa punkty opisują ogólny mechanizm geometryczny, natomiast punkty 3--6 są hipotezami empirycznymi
+wyprowadzonymi z eksperymentu colon cancer. Nie należy jeszcze traktować ich jako wyników uniwersalnych;
+naturalnym kolejnym krokiem są dane syntetyczne o kontrolowanej redundancji i szumie oraz porównanie na
+większej rodzinie zbiorów wysokowymiarowych.
+
 \section{Wnioski}
 
 Usuwanie cech powoduje, że kolejne neurony pracują na coraz słabszej puli sygnału. Empiryczny signed geometric
