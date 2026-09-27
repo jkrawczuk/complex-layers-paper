@@ -119,6 +119,22 @@ Szerokość formalnego pasa może rosnąć, gdy $\lVert w_i\rVert_2$ dąży do z
 separacji. Późny neuron może być niemal płaski, mieć bardzo szeroki formalny pas, a jednocześnie klasyfikować
 obiekty testowe źle.
 
+\section{Liczba cech wybieranych przez kolejne neurony}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_selected_features_panel.png}
+\caption{Liczba cech wybranych przez kolejny neuron. Linia pokazuje medianę, a zacieniowany obszar---IQR
+pomiędzy splitami, w których dany neuron został zbudowany.}
+\end{figure}
+
+W reżimach low-feature CPL i regresja logistyczna szybko redukują liczbę wybieranych cech do jednej lub dwóch.
+SVM-low zużywa cechy wolniej: początkowo wybiera około 5--7 cech, a dopiero w późnych neuronach schodzi do
+pojedynczych zmiennych. W reżimie high-feature CPL utrzymuje około 17--20 cech na neuron, natomiast SVM
+wybiera zwykle około 27--31 cech. Regresja logistyczna high-feature szybko przechodzi od szerokich pierwszych
+neuronów do neuronów wykorzystujących zaledwie kilka cech. Wykres pomaga wyjaśnić różnice szerokości pasa:
+zanikanie normy współczynników nie musi być proporcjonalne do samej liczby niezerowych cech.
+
 \section{Szerokość formalnego pasa}
 
 \begin{figure}[H]
@@ -229,6 +245,85 @@ procedury automatycznego wyboru głębokości potrzebna byłaby walidacja zagnie
 \item Formalna szerokość $2/\lVert w\rVert_2$ nie jest samodzielną miarą jakości klasyfikatora, szczególnie
 w modelach z karą L1 i soft-margin.
 \end{itemize}
+
+\section{Dyskusja teoretyczna: czego oczekiwać po kolejnych warstwach?}
+
+Niech $S_k$ oznacza zbiór cech dostępnych dla neuronu $k$. Konstrukcja Complex Layers usuwa cechy wybrane
+wcześniej, dlatego
+\[
+S_{k+1}\subset S_k.
+\]
+Klasa liniowych klasyfikatorów dostępnych w kolejnej warstwie jest zatem podzbiorem klasy wcześniejszej:
+\[
+\mathcal H_{k+1}\subseteq\mathcal H_k.
+\]
+
+\subsection*{Hard-margin}
+
+W idealnym przypadku danych liniowo separowalnych można zdefiniować najlepszy osiągalny geometryczny margines
+na zbiorze treningowym jako
+\[
+\gamma_k^{\star}=
+\max_{\substack{\lVert w\rVert_2=1\\ w_j=0\;\mathrm{dla}\;j\notin S_k}}
+\min_i y_i(w^\top x_i+b).
+\]
+Ponieważ kolejna warstwa optymalizuje po mniejszym zbiorze dopuszczalnych kierunków, zachodzi
+\[
+\gamma_{k+1}^{\star}\leq\gamma_k^{\star}.
+\]
+W takim modelu najlepszy możliwy hard margin powinien być nierosnący wraz z głębokością. Może pozostać
+niezmieniony, jeżeli pozostałe cechy zawierają redundantny sygnał pozwalający skonstruować równie dobry
+separator. Nie powinien jednak wzrosnąć wyłącznie wskutek usunięcia dostępnych cech.
+
+Twierdzenie dotyczy maksymalnego marginesu w zagnieżdżonych klasach hipotez, przy tej samej normalizacji i na
+tym samym zbiorze treningowym. Nie jest twierdzeniem o pojedynczym rozwiązaniu soft-margin ani o zachowaniu
+na niezależnym zbiorze testowym.
+
+\subsection*{Soft-margin z regularyzacją L1}
+
+W badanym eksperymencie neurony nie rozwiązują problemu czystego hard-margin. Minimalizują funkcję postaci
+\[
+J_k(w,b)=\lVert w\rVert_1+C\,L_k(w,b),
+\]
+gdzie $L_k$ jest hinge, squared hinge albo logistic loss. Z zagnieżdżenia przestrzeni wynika jedynie, że
+najlepsza wartość całej funkcji celu nie może się poprawić po ograniczeniu zbioru cech:
+\[
+\min_{(w,b)\in\mathcal H_{k+1}}J_k(w,b)
+\geq
+\min_{(w,b)\in\mathcal H_k}J_k(w,b).
+\]
+Nie wynika z tego osobna monotoniczność straty, normy L1, normy L2 ani szerokości
+$2/\lVert w\rVert_2$. Optymalizator może zaakceptować większą stratę klasyfikacyjną w zamian za znacznie
+mniejszą normę współczynników. Możliwy jest więc przebieg
+\[
+L_k\uparrow,
+\qquad
+\lVert w_k\rVert_2\downarrow,
+\qquad
+\frac{2}{\lVert w_k\rVert_2}\uparrow.
+\]
+Formalny pas staje się wtedy szerszy, lecz nie dlatego, że klasy są lepiej separowane. Funkcja decyzyjna
+staje się niemal płaska, a większa część próbek może znaleźć się po niewłaściwej stronie granicy.
+
+\subsection*{Train a test}
+
+Argument o zagnieżdżonych klasach dotyczy optymalnego rozwiązania na ustalonym zbiorze treningowym. Nie daje
+monotonicznej gwarancji dla testu. W małej próbie empiryczny margines testowy może chwilowo rosnąć lub spadać
+wskutek zmienności foldu i niestabilności wybranych cech. Jeżeli jednak kolejne neurony systematycznie
+wyczerpują stabilny sygnał, naturalnym oczekiwaniem jest
+\[
+\operatorname{median}\!\left(
+\frac{y f_k(x)}{\lVert w_k\rVert_2}
+\right)_{x\in\mathrm{test}}
+\downarrow.
+\]
+Jednocześnie margines treningowy może pozostawać dodatni, ponieważ neuron nadal dopasowuje strukturę obecną
+w foldzie treningowym. Rosnąca luka pomiędzy train i test wskazuje wtedy na coraz słabszą generalizację.
+
+Zaobserwowane wyniki są zgodne z tym scenariuszem: signed geometric margin na teście zazwyczaj maleje, podczas
+gdy formalna szerokość pasa dla SVM i regresji logistycznej może silnie rosnąć. CPL-high zachowuje bardziej
+stabilną normę, ale również wykazuje stopniowe pogorszenie marginesu testowego. Oznacza to, że w soft-margin
+nie należy utożsamiać wzrostu $2/\lVert w\rVert_2$ ze wzrostem jakości separacji.
 
 \section{Wnioski}
 

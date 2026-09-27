@@ -166,12 +166,32 @@ def timing_panel():
     return path
 
 
+def feature_count_panel():
+    fig, axes = setup_axes(
+        "Colon cancer: features selected by successive neurons",
+        "median selected features (IQR)",
+    )
+    for row, regime in enumerate(REGIMES):
+        for col, model in enumerate(MODELS):
+            rows = read_csv(RESULTS / model / regime / "neuron_summary.csv")
+            plot_median_band(
+                axes[row, col], grouped_values(rows, "features_nth_neuron"),
+                "selected features", COLORS["uniform"],
+            )
+            axes[row, col].set_ylim(bottom=0.0)
+    path = OUT / "colon_selected_features_panel.png"
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+    return path
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for path in (
         margin_width_panel(),
         geometric_margin_panel(),
         voting_panel(),
+        feature_count_panel(),
         timing_panel(),
     ):
         print(f"saved: {path}")
