@@ -228,31 +228,8 @@ najlepszy pozostaje pierwszy neuron.
 Analiza sparowana względem uniform voting (suplement) wskazuje, że przewaga sample-distance jest wyraźniejsza
 dla CPL-high, natomiast dla CPL-low pozostaje niepewna.
 
-\section{Czas obliczeń}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{colon_neuron_fit_time_panel.png}
-\caption{Mediana czasu trenowania kolejnych neuronów; pas przedstawia IQR pomiędzy dostępnymi splitami.}
-\end{figure}
-
-\begin{center}
-\begin{tabular}{lrr}
-\toprule
-Konfiguracja & Czas całego runu [s] & Przybliżony czas \\
-\midrule
-SVM low & 20.1 & 20 s \\
-SVM high & 36.8 & 37 s \\
-CPL low & 654.3 & 10.9 min \\
-CPL high & 2286.6 & 38.1 min \\
-Logreg low & 528.7 & 8.8 min \\
-Logreg high & 1798.7 & 30.0 min \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-Czas samego głosowania i obliczania metryk jest niewielki w porównaniu z dopasowaniem neuronów. Cztery
-strategie mogą być obliczane po treningu z zapisanych score'ów, predykcji i norm współczynników.
+Koszt eksperymentu wynika niemal w całości z trenowania neuronów; przeliczenie czterech strategii głosowania
+na podstawie zapisanych wyników jest pomijalne. Szczegółowe czasy podano w suplemencie.
 
 \section{Ograniczenia interpretacji}
 
@@ -465,6 +442,32 @@ i przegrała na 9; w CPL-high było to odpowiednio 13, 86 i 1.
 Przedziały mają charakter opisowy. Splity powtarzanej walidacji krzyżowej nie są niezależnymi próbami, a
 głębokość została wybrana po obejrzeniu wyników. Nie są to więc przedziały potwierdzające istotność
 ostatecznie wybranej metody; do takiego wniosku potrzebny jest wybór strategii i głębokości w wewnętrznej CV.
+
+\subsection{Czas obliczeń}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_neuron_fit_time_panel.png}
+\caption{Mediana czasu trenowania kolejnych neuronów; pas przedstawia IQR pomiędzy dostępnymi splitami.}
+\end{figure}
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Konfiguracja & Czas całego runu [s] & Przybliżony czas \\
+\midrule
+SVM low & 20.1 & 20 s \\
+SVM high & 36.8 & 37 s \\
+CPL low & 654.3 & 10.9 min \\
+CPL high & 2286.6 & 38.1 min \\
+Logreg low & 528.7 & 8.8 min \\
+Logreg high & 1798.7 & 30.0 min \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Czas samego głosowania i obliczania metryk jest niewielki w porównaniu z dopasowaniem neuronów. Cztery
+strategie mogą być obliczane po treningu z zapisanych score'ów, predykcji i norm współczynników.
 
 \subsection{Ograniczenie diagnostyki zbieżności}
 
