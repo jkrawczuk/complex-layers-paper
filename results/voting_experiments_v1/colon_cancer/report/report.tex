@@ -135,6 +135,39 @@ wybiera zwykle około 27--31 cech. Regresja logistyczna high-feature szybko prze
 neuronów do neuronów wykorzystujących zaledwie kilka cech. Wykres pomaga wyjaśnić różnice szerokości pasa:
 zanikanie normy współczynników nie musi być proporcjonalne do samej liczby niezerowych cech.
 
+\section{Dostępność splitów na kolejnych głębokościach}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_split_coverage_panel.png}
+\caption{Liczba splitów CV, w których zbudowano neuron o danej głębokości. Pozioma linia przerywana oznacza
+pełne 100 splitów (10 foldów $\times$ 10 powtórzeń).}
+\end{figure}
+
+Dostępność na poziomie $k$ zdefiniowano jako liczbę różnych splitów, dla których w szczegółowych wynikach
+istnieje rekord z \texttt{n\_neuron}$=k$. Wszystkie mediany, IQR oraz średnie
+accuracy pokazane dalej dla poziomu $k$ są obliczone wyłącznie z tych dostępnych splitów, a nie zawsze ze
+stałego zbioru 100 realizacji.
+
+Dokładne liczby (zapis \mbox{$a$--$b$: $m$} oznacza $m$ splitów dla każdego poziomu od $a$ do $b$) są
+następujące:
+
+\begin{itemize}
+\item CPL-low: 1--3: 100; 4: 99; 5: 80; 6: 51; 7: 20; 8: 10; 9: 9; 10: 3; 11--13: 1.
+\item SVM-low: 1--14: 100; 15: 99; 16: 96; 17: 86; 18: 74; 19: 65; 20: 50; 21: 38;
+22: 26; 23: 18; 24: 12; 25: 10; 26: 6; 27: 4; 28: 3; 29: 2; 30: 1.
+\item Logistic regression-low: 1: 100; 2: 73; 3: 7.
+\item CPL-high: 1--31: 100.
+\item SVM-high: 1--31: 100.
+\item Logistic regression-high: 1--4: 100; 5: 98; 6: 61; 7: 22; 8: 4.
+\end{itemize}
+
+Spadek tej krzywej oznacza, że po usunięciu cech wcześniejsze neurony wyczerpały pulę wystarczającą do
+zbudowania następnego neuronu. Dlatego końcowe punkty CPL-low, SVM-low i regresji logistycznej opisują
+selektywną podgrupę splitów i mają znacznie większą niepewność. Nie należy porównywać ich z wcześniejszymi
+punktami tak, jakby wszystkie były oparte na tej samej liczbie realizacji. CPL-high i SVM-high zachowują
+pełne 100 splitów aż do poziomu 31.
+
 \section{Szerokość formalnego pasa}
 
 \begin{figure}[H]

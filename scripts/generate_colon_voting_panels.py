@@ -185,6 +185,30 @@ def feature_count_panel():
     return path
 
 
+def coverage_panel():
+    fig, axes = setup_axes(
+        "Colon cancer: CV-split availability across neuron depth",
+        "available CV splits (maximum 100)",
+    )
+    for row, regime in enumerate(REGIMES):
+        for col, model in enumerate(MODELS):
+            rows = read_csv(RESULTS / model / regime / "neuron_summary.csv")
+            counts = defaultdict(int)
+            for item in rows:
+                counts[int(item["n_neuron"])] += 1
+            depth = np.asarray(sorted(counts), dtype=int)
+            coverage = np.asarray([counts[n] for n in depth], dtype=int)
+            ax = axes[row, col]
+            ax.plot(depth, coverage, color=COLORS["uniform"], marker="o", markersize=3)
+            ax.fill_between(depth, 0, coverage, color=COLORS["uniform"], alpha=0.10)
+            ax.axhline(100, color="black", linestyle="--", linewidth=0.8, alpha=0.6)
+            ax.set_ylim(0, 105)
+    path = OUT / "colon_split_coverage_panel.png"
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+    return path
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for path in (
@@ -192,6 +216,7 @@ def main():
         geometric_margin_panel(),
         voting_panel(),
         feature_count_panel(),
+        coverage_panel(),
         timing_panel(),
     ):
         print(f"saved: {path}")
