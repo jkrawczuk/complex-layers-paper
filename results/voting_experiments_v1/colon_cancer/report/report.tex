@@ -59,17 +59,6 @@ Wszystkie modele stosują regularyzację L1. Różnią się funkcją straty: CPL
 jako program liniowy, SVM używa squared hinge loss, a regresja logistyczna---logistic loss. Norma L2 nie jest
 karą optymalizacyjną; służy wyłącznie do późniejszego pomiaru geometrii wytrenowanego neuronu.
 
-\subsection*{Szczegóły reprodukcyjne}
-
-Podziały wygenerowano przez \texttt{RepeatedStratifiedKFold} z \texttt{random\_state=42}. Każdą cechę
-standaryzowano osobno w splicie za pomocą średniej i odchylenia standardowego ($ddof=1$) obliczonych tylko
-na foldzie treningowym; te same parametry stosowano następnie do foldu testowego. Wszystkie modele korzystały
-z balanced sample weights. Maksymalna liczba neuronów wynosiła 31, próg uznania współczynnika za niezerowy
-$10^{-8}$, a limit iteracji modeli scikit-learn 5000. Regresja logistyczna używała solvera SAGA, natomiast
-SVM---\texttt{LinearSVC} z \texttt{dual=False}. Eksperyment uruchomiono jednym procesem dla zachowania
-jednoznacznego pomiaru czasu. Skrypt uruchomieniowy i zapis surowych predykcji znajdują się w commicie
-\texttt{1ed1525} gałęzi eksperymentalnej.
-
 \section{Cztery sposoby głosowania}
 
 Niech wynik liniowy neuronu $i$ będzie równy
@@ -160,37 +149,11 @@ istnieje rekord z \texttt{n\_neuron}$=k$. Wszystkie mediany, IQR oraz średnie
 accuracy pokazane dalej dla poziomu $k$ są obliczone wyłącznie z tych dostępnych splitów, a nie zawsze ze
 stałego zbioru 100 realizacji.
 
-Dokładne liczby (zapis \mbox{$a$--$b$: $m$} oznacza $m$ splitów dla każdego poziomu od $a$ do $b$) są
-następujące:
-
-\begin{itemize}
-\item CPL-low: 1--3: 100; 4: 99; 5: 80; 6: 51; 7: 20; 8: 10; 9: 9; 10: 3; 11--13: 1.
-\item SVM-low: 1--14: 100; 15: 99; 16: 96; 17: 86; 18: 74; 19: 65; 20: 50; 21: 38;
-22: 26; 23: 18; 24: 12; 25: 10; 26: 6; 27: 4; 28: 3; 29: 2; 30: 1.
-\item Logistic regression-low: 1: 100; 2: 73; 3: 7.
-\item CPL-high: 1--31: 100.
-\item SVM-high: 1--31: 100.
-\item Logistic regression-high: 1--4: 100; 5: 98; 6: 61; 7: 22; 8: 4.
-\end{itemize}
-
 Spadek tej krzywej oznacza, że po usunięciu cech wcześniejsze neurony wyczerpały pulę wystarczającą do
 zbudowania następnego neuronu. Dlatego końcowe punkty CPL-low, SVM-low i regresji logistycznej opisują
 selektywną podgrupę splitów i mają znacznie większą niepewność. Nie należy porównywać ich z wcześniejszymi
 punktami tak, jakby wszystkie były oparte na tej samej liczbie realizacji. CPL-high i SVM-high zachowują
-pełne 100 splitów aż do poziomu 31.
-
-\subsection*{Reguła zatrzymania i przyczyny zakończenia}
-
-Po dopasowaniu neuronu wybierano współczynniki o wartości bezwzględnej większej niż $10^{-8}$ i odpowiadające
-im cechy usuwano z puli. Budowanie warstwy kończyło się, gdy (a) osiągnięto limit 31 neuronów, (b) nie
-pozostała żadna cecha albo (c) następny dopasowany model nie miał żadnego współczynnika przekraczającego
-próg. Model bez wybranej cechy nie był dołączany do warstwy.
-
-Na podstawie liczby zbudowanych neuronów i zapisanych indeksów cech można odtworzyć przyczynę zakończenia.
-We wszystkich 100 splitach CPL-low, SVM-low, logistic regression-low i logistic regression-high zatrzymanie
-nastąpiło dlatego, że następny neuron nie wybrał żadnej cechy; pula wejściowa nie była jeszcze pusta.
-W CPL-high i SVM-high wszystkie 100 splitów osiągnęło narzucony limit 31 neuronów. Nie wystąpił przypadek
-całkowitego wyczerpania wszystkich 2000 cech przed osiągnięciem limitu.
+pełne 100 splitów aż do poziomu 31. Dokładne liczby i regułę zatrzymania podano w suplemencie.
 
 \section{Szerokość formalnego pasa}
 
@@ -262,26 +225,8 @@ $n=2$, a w CPL-high 0.8533 dla $n=5$. Samo inverse-L2-norm weighting nie daje po
 o normie bliskiej zeru, mimo że ich empiryczny margines testowy i accuracy maleją. Dla regresji logistycznej
 najlepszy pozostaje pierwszy neuron.
 
-\subsection*{Sparowane różnice względem uniform voting}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\textwidth]{colon_paired_accuracy_difference_panel.png}
-\caption{Średnia różnica test accuracy względem uniform voting, liczona parami na tym samym splicie i tej
-samej głębokości. Pas przedstawia opisowy 95\% bootstrap percentile interval średniej z 5000 resamplowań.
-Linia zerowa oznacza brak różnicy.}
-\end{figure}
-
-Porównanie sparowane eliminuje część zmienności wynikającą z różnych foldów. Dla najlepszych wcześniej
-wskazanych głębokości sample-distance minus uniform wynosi średnio 0.0079 w CPL-low ($n=2$) i 0.0186 w
-CPL-high ($n=5$). Odpowiednie 95\% przedziały bootstrapowe wynoszą $[-0.0069,\,0.0233]$ oraz
-$[0.0055,\,0.0324]$. W CPL-low metoda wygrała na 14 splitach, zremisowała na 77 i przegrała na 9; w
-CPL-high było to odpowiednio 13, 86 i 1. Wynik CPL-high jest więc wyraźniejszy, podczas gdy poprawa CPL-low
-pozostaje niepewna.
-
-Przedziały mają charakter opisowy. Splity powtarzanej walidacji krzyżowej nie są niezależnymi próbami, a
-głębokość została wybrana po obejrzeniu wyników. Nie są to zatem przedziały potwierdzające istotność
-ostatecznie wybranej metody; do takiego wniosku potrzebny jest wybór strategii i głębokości w wewnętrznej CV.
+Analiza sparowana względem uniform voting (suplement) wskazuje, że przewaga sample-distance jest wyraźniejsza
+dla CPL-high, natomiast dla CPL-low pozostaje niepewna.
 
 \section{Czas obliczeń}
 
@@ -316,10 +261,8 @@ strategie mogą być obliczane po treningu z zapisanych score'ów, predykcji i n
 logistycznej. Końcowe punkty mogą więc opierać się na małej i selektywnej części splitów.
 \item Fold testowy zawiera tylko około 6--7 obiektów. Zastosowanie median ogranicza wpływ wartości odstających,
 ale pojedyncza mediana splitowa nadal ma charakter dyskretny i zmienny.
-\item Podczas wykonania regresja logistyczna zgłaszała ostrzeżenia o osiągnięciu limitu 5000 iteracji, lecz
-ówczesny format wyników nie zapisywał \texttt{n\_iter\_} ani ostrzeżeń osobno dla neuronu i splitu. Nie można
-więc retrospektywnie podać uczciwej liczby niezbieżnych dopasowań. Wyniki logreg wymagają ponownego przebiegu
-z rejestrowaniem statusu zbieżności przed formułowaniem silnych wniosków.
+\item Regresja logistyczna zgłaszała ostrzeżenia o osiągnięciu limitu iteracji. Wyniki logreg wymagają
+dodatkowej kontroli zbieżności; szczegóły ograniczenia zapisu podano w suplemencie.
 \item Wybór najlepszej głębokości na podstawie tych samych wyników CV ma charakter eksploracyjny. Do oceny
 procedury automatycznego wyboru głębokości potrzebna byłaby walidacja zagnieżdżona albo niezależny zbiór.
 \item Formalna szerokość $2/\lVert w\rVert_2$ nie jest samodzielną miarą jakości klasyfikatora, szczególnie
@@ -458,5 +401,76 @@ $1/\lVert w\rVert_2$ nie poprawia wyników.
 Najbardziej obiecującą strategią dla CPL jest sample-distance voting, szczególnie w płytkiej warstwie liczącej
 około 2--5 neuronów. Łączy ono kierunek głosu z odległością konkretnej próbki od granicy, dzięki czemu nie
 interpretuje automatycznie małej normy współczynników jako wysokiej jakości neuronu.
+
+\clearpage
+\appendix
+\section{Suplement techniczny}
+
+Ta część gromadzi informacje potrzebne do reprodukcji i audytu wyników, bez przerywania głównej narracji
+raportu.
+
+\subsection{Szczegóły reprodukcyjne}
+
+Podziały wygenerowano przez \texttt{RepeatedStratifiedKFold} z \texttt{random\_state=42}. Każdą cechę
+standaryzowano osobno w splicie za pomocą średniej i odchylenia standardowego ($ddof=1$) obliczonych tylko
+na foldzie treningowym; te same parametry stosowano następnie do foldu testowego. Wszystkie modele korzystały
+z balanced sample weights. Maksymalna liczba neuronów wynosiła 31, próg uznania współczynnika za niezerowy
+$10^{-8}$, a limit iteracji modeli scikit-learn 5000. Regresja logistyczna używała solvera SAGA, natomiast
+SVM---\texttt{LinearSVC} z \texttt{dual=False}. Eksperyment uruchomiono jednym procesem dla zachowania
+jednoznacznego pomiaru czasu. Skrypt uruchomieniowy i zapis surowych predykcji znajdują się w commicie
+\texttt{1ed1525} gałęzi eksperymentalnej.
+
+\subsection{Dokładna dostępność splitów}
+
+Zapis \mbox{$a$--$b$: $m$} oznacza $m$ dostępnych splitów dla każdego poziomu od $a$ do $b$:
+
+\begin{itemize}
+\item CPL-low: 1--3: 100; 4: 99; 5: 80; 6: 51; 7: 20; 8: 10; 9: 9; 10: 3; 11--13: 1.
+\item SVM-low: 1--14: 100; 15: 99; 16: 96; 17: 86; 18: 74; 19: 65; 20: 50; 21: 38;
+22: 26; 23: 18; 24: 12; 25: 10; 26: 6; 27: 4; 28: 3; 29: 2; 30: 1.
+\item Logistic regression-low: 1: 100; 2: 73; 3: 7.
+\item CPL-high: 1--31: 100.
+\item SVM-high: 1--31: 100.
+\item Logistic regression-high: 1--4: 100; 5: 98; 6: 61; 7: 22; 8: 4.
+\end{itemize}
+
+\subsection{Reguła zatrzymania i przyczyny zakończenia}
+
+Po dopasowaniu neuronu wybierano współczynniki o wartości bezwzględnej większej niż $10^{-8}$ i odpowiadające
+im cechy usuwano z puli. Budowanie warstwy kończyło się, gdy (a) osiągnięto limit 31 neuronów, (b) nie
+pozostała żadna cecha albo (c) następny dopasowany model nie miał żadnego współczynnika przekraczającego
+próg. Model bez wybranej cechy nie był dołączany do warstwy.
+
+Na podstawie liczby zbudowanych neuronów i zapisanych indeksów cech można odtworzyć przyczynę zakończenia.
+We wszystkich 100 splitach CPL-low, SVM-low, logistic regression-low i logistic regression-high zatrzymanie
+nastąpiło dlatego, że następny neuron nie wybrał żadnej cechy; pula wejściowa nie była jeszcze pusta.
+W CPL-high i SVM-high wszystkie 100 splitów osiągnęło narzucony limit 31 neuronów. Nie wystąpił przypadek
+całkowitego wyczerpania wszystkich 2000 cech przed osiągnięciem limitu.
+
+\subsection{Sparowane różnice accuracy}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{colon_paired_accuracy_difference_panel.png}
+\caption{Średnia różnica test accuracy względem uniform voting, liczona parami na tym samym splicie i tej
+samej głębokości. Pas przedstawia opisowy 95\% bootstrap percentile interval średniej z 5000 resamplowań.
+Linia zerowa oznacza brak różnicy.}
+\end{figure}
+
+Dla najlepszych wcześniej wskazanych głębokości sample-distance minus uniform wynosi średnio 0.0079 w
+CPL-low ($n=2$) i 0.0186 w CPL-high ($n=5$). Odpowiednie 95\% przedziały bootstrapowe wynoszą
+$[-0.0069,\,0.0233]$ oraz $[0.0055,\,0.0324]$. W CPL-low metoda wygrała na 14 splitach, zremisowała na 77
+i przegrała na 9; w CPL-high było to odpowiednio 13, 86 i 1.
+
+Przedziały mają charakter opisowy. Splity powtarzanej walidacji krzyżowej nie są niezależnymi próbami, a
+głębokość została wybrana po obejrzeniu wyników. Nie są to więc przedziały potwierdzające istotność
+ostatecznie wybranej metody; do takiego wniosku potrzebny jest wybór strategii i głębokości w wewnętrznej CV.
+
+\subsection{Ograniczenie diagnostyki zbieżności}
+
+Podczas wykonania regresja logistyczna zgłaszała ostrzeżenia o osiągnięciu limitu 5000 iteracji, lecz
+ówczesny format wyników nie zapisywał \texttt{n\_iter\_} ani ostrzeżeń osobno dla neuronu i splitu. Nie można
+więc retrospektywnie podać uczciwej liczby niezbieżnych dopasowań. Wyniki logreg wymagają ponownego przebiegu
+z rejestrowaniem statusu zbieżności przed formułowaniem silnych wniosków.
 
 \end{document}
