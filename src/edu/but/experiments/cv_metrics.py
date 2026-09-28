@@ -195,10 +195,15 @@ def _quality_weights(train_balanced_by_n, n_neurons):
     return [v / total for v in raw]
 
 
-def _inverse_norm_weights(neuron_summary, split_key, n_neurons):
-    raw = [neuron_summary[(split_key, n)]["inverse_l2_norm"] for n in range(1, n_neurons + 1)]
+def _inverse_norm_weights(neuron_summary, split_key, n_neurons, norm_key):
+    raw_norms = [neuron_summary[(split_key, n)][norm_key] for n in range(1, n_neurons + 1)]
+    if any(value is None or not np.isfinite(value) or value <= 0.0 for value in raw_norms):
+        raise ValueError(
+            f"Invalid {norm_key} for split {split_key} at depth {n_neurons}."
+        )
+    raw = [1.0 / float(value) for value in raw_norms]
     if any(value is None or not np.isfinite(value) or value <= 0.0 for value in raw):
-        raise ValueError(f"Invalid inverse L2 norm for split {split_key} at depth {n_neurons}.")
+        raise ValueError(f"Invalid inverse {norm_key} for split {split_key} at depth {n_neurons}.")
     total = float(sum(raw))
     return [float(value / total) for value in raw]
 
@@ -567,7 +572,9 @@ def compute_cv_metrics(bundle_dir: Path):
 
             if scores[key]["train"]:
                 aggregation_start = time.perf_counter()
-                inverse_weights = _inverse_norm_weights(neuron_summary, key, n)
+                inverse_weights = _inverse_norm_weights(
+                    neuron_summary, key, n, "coef_l2_norm"
+                )
                 train_inverse = _weighted_vote(
                     predictions[key]["train"], train_samples, inverse_weights
                 )
@@ -580,6 +587,49 @@ def compute_cv_metrics(bundle_dir: Path):
                         meta, "inverse_l2_norm", key, n, minority_label,
                         ";".join(f"{w:.8g}" for w in inverse_weights), inverse_elapsed,
                         y_train, train_inverse, y_test, test_inverse, minority_encoded,
+                    )
+                )
+
+                inverse_l1_weights = _inverse_norm_weights(
+                    neuron_summary, key, n, "l1_norm"
+                )
+                aggregation_start = time.perf_counter()
+                train_inverse_l1 = _weighted_vote(
+                    predictions[key]["train"], train_samples, inverse_l1_weights
+                )
+                test_inverse_l1 = _weighted_vote(
+                    predictions[key]["test"], test_samples, inverse_l1_weights
+                )
+                inverse_l1_elapsed = float(time.perf_counter() - aggregation_start)
+                strategy_rows.append(
+                    _strategy_metric_row(
+                        meta, "inverse_l1_norm", key, n, minority_label,
+                        ";".join(f"{w:.8g}" for w in inverse_l1_weights),
+                        inverse_l1_elapsed, y_train, train_inverse_l1, y_test,
+                        test_inverse_l1, minority_encoded,
+                    )
+                )
+
+                l1_norms = [
+                    neuron_summary[(key, depth)]["l1_norm"]
+                    for depth in range(1, n + 1)
+                ]
+                aggregation_start = time.perf_counter()
+                train_distance_linf = _distance_vote(
+                    scores[key]["train"], predictions[key]["train"],
+                    train_samples, l1_norms, n
+                )
+                test_distance_linf = _distance_vote(
+                    scores[key]["test"], predictions[key]["test"],
+                    test_samples, l1_norms, n
+                )
+                distance_linf_elapsed = float(time.perf_counter() - aggregation_start)
+                strategy_rows.append(
+                    _strategy_metric_row(
+                        meta, "sample_distance_linf", key, n, minority_label,
+                        "sample_specific", distance_linf_elapsed, y_train,
+                        train_distance_linf, y_test, test_distance_linf,
+                        minority_encoded,
                     )
                 )
 
@@ -631,8 +681,11 @@ def compute_cv_metrics(bundle_dir: Path):
                     "train_balanced_accuracy_minus_chance",
                     "inverse_l2_norm",
                     "sample_distance",
+                    "inverse_l1_norm",
+                    "sample_distance_linf",
                 ],
                 "sample_distance_formula": "sum_i score_i(x) / ||coef_i||_2",
+                "sample_distance_linf_formula": "sum_i score_i(x) / ||coef_i||_1",
             },
             f,
             indent=2,

@@ -81,7 +81,9 @@ def save_voting_comparison(bundle_dir, out_dir):
         "uniform": "uniform",
         "train_balanced_accuracy_minus_chance": "train BA",
         "inverse_l2_norm": "inverse L2 norm",
-        "sample_distance": "sample distance",
+        "sample_distance": "sample distance L2",
+        "inverse_l1_norm": "inverse L1 norm",
+        "sample_distance_linf": "sample distance Linf",
     }
     fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), constrained_layout=True)
     for strategy, strategy_rows in sorted(by_strategy.items()):

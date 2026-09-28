@@ -142,13 +142,15 @@ committed to git; the current local full-run output is under `results/paper_runs
 ## Voting and Margin Experiments
 
 New prediction bundles retain each neuron's raw linear score alongside its predicted label. They also record
-the coefficient L2 norm, inverse norm, unit-score band width, intercept, train/test margin summaries, and
-per-neuron timing. This supports four post-fit voting strategies without retraining the neurons:
+the coefficient L1 and L2 norms, inverse L2 norm, unit-score band width, intercept, train/test margin
+summaries, and per-neuron timing. This supports six post-fit voting strategies without retraining the neurons:
 
 - uniform voting;
 - weights based on training-fold balanced accuracy above chance;
 - inverse-L2-norm weights, `1 / ||w||_2`;
-- sample-specific geometric-distance weights, equivalent to summing `score_i(x) / ||w_i||_2`.
+- sample-specific Euclidean-distance weights, equivalent to summing `score_i(x) / ||w_i||_2`;
+- inverse-L1-norm weights, `1 / ||w||_1`;
+- sample-specific L-infinity-distance weights, equivalent to summing `score_i(x) / ||w_i||_1`.
 
 After generating a bundle, compute all voting strategies and create the diagnostic figures with:
 

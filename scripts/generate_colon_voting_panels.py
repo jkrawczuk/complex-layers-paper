@@ -18,6 +18,8 @@ COLORS = {
     "train_balanced_accuracy_minus_chance": "#2ca02c",
     "inverse_l2_norm": "#ff7f0e",
     "sample_distance": "#d62728",
+    "inverse_l1_norm": "#9467bd",
+    "sample_distance_linf": "#8c564b",
     "train": "#1f77b4",
     "test": "#ff7f0e",
 }
@@ -25,7 +27,9 @@ LABELS = {
     "uniform": "uniform",
     "train_balanced_accuracy_minus_chance": "train BA",
     "inverse_l2_norm": r"inverse $\|w\|_2$",
-    "sample_distance": "sample distance",
+    "sample_distance": r"sample distance $L_2$",
+    "inverse_l1_norm": r"inverse $\|w\|_1$",
+    "sample_distance_linf": r"sample distance $L_\infty$",
 }
 
 
@@ -40,6 +44,20 @@ def grouped_values(rows, key):
         value = row.get(key)
         if value not in (None, ""):
             values[int(row["n_neuron"])].append(float(value))
+    return values
+
+
+def grouped_ratio(rows, numerator_key, denominator_key, factor=1.0):
+    values = defaultdict(list)
+    for row in rows:
+        numerator = row.get(numerator_key)
+        denominator = row.get(denominator_key)
+        if numerator not in (None, "") and denominator not in (None, ""):
+            denominator = float(denominator)
+            if denominator > 0.0:
+                values[int(row["n_neuron"])].append(
+                    factor * float(numerator) / denominator
+                )
     return values
 
 
@@ -94,6 +112,31 @@ def margin_width_panel():
     return path
 
 
+def margin_width_linf_panel():
+    fig, axes = setup_axes(
+        r"Colon cancer: $L_\infty$ unit-score band width across neuron depth",
+        r"median $2 / \|w\|_1$ (IQR)",
+    )
+    for row, regime in enumerate(REGIMES):
+        for col, model in enumerate(MODELS):
+            rows = read_csv(RESULTS / model / regime / "neuron_summary.csv")
+            grouped = defaultdict(list)
+            for item in rows:
+                norm = float(item["l1_norm"])
+                if norm > 0.0:
+                    grouped[int(item["n_neuron"])].append(2.0 / norm)
+            plot_median_band(axes[row, col], grouped, "band width", COLORS["inverse_l1_norm"])
+            axes[row, col].set_yscale("log")
+            axes[row, col].text(
+                0.98, 0.04, "bands: IQR across available CV splits",
+                transform=axes[row, col].transAxes, ha="right", va="bottom", fontsize=8, alpha=0.7,
+            )
+    path = OUT / "colon_margin_width_linf_panel.png"
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+    return path
+
+
 def geometric_margin_panel():
     fig, axes = setup_axes(
         "Colon cancer: signed geometric margin across neuron depth",
@@ -114,6 +157,31 @@ def geometric_margin_panel():
             ax.axhline(0.0, color="black", linewidth=0.8)
             ax.legend(fontsize=8)
     path = OUT / "colon_geometric_margin_panel.png"
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+    return path
+
+
+def geometric_margin_linf_panel():
+    fig, axes = setup_axes(
+        r"Colon cancer: signed $L_\infty$ margin across neuron depth",
+        r"median signed margin $y f(x) / \|w\|_1$ (IQR)",
+    )
+    for row, regime in enumerate(REGIMES):
+        for col, model in enumerate(MODELS):
+            rows = read_csv(RESULTS / model / regime / "neuron_summary.csv")
+            ax = axes[row, col]
+            plot_median_band(
+                ax, grouped_ratio(rows, "train_functional_margin_median", "l1_norm"),
+                "train", COLORS["train"],
+            )
+            plot_median_band(
+                ax, grouped_ratio(rows, "test_functional_margin_median", "l1_norm"),
+                "test", COLORS["test"],
+            )
+            ax.axhline(0.0, color="black", linewidth=0.8)
+            ax.legend(fontsize=8)
+    path = OUT / "colon_geometric_margin_linf_panel.png"
     fig.savefig(path, dpi=200)
     plt.close(fig)
     return path
@@ -157,6 +225,8 @@ def paired_accuracy_difference_panel():
         "train_balanced_accuracy_minus_chance",
         "inverse_l2_norm",
         "sample_distance",
+        "inverse_l1_norm",
+        "sample_distance_linf",
     )
     rng = np.random.default_rng(20260927)
     for row, regime in enumerate(REGIMES):
@@ -267,7 +337,9 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for path in (
         margin_width_panel(),
+        margin_width_linf_panel(),
         geometric_margin_panel(),
+        geometric_margin_linf_panel(),
         voting_panel(),
         paired_accuracy_difference_panel(),
         feature_count_panel(),
