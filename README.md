@@ -165,6 +165,15 @@ Strategy results are written to `metrics/voting_strategy_*.csv`. Margin, timing,
 are written under `figures/voting_experiments/`. For logistic regression, `2 / ||w||_2` is reported as a
 unit-score band width rather than as a maximum-margin SVM quantity.
 
+To cap each neuron at the `k` largest nonzero absolute coefficients and refit the same base classifier on
+that subset, pass `--top-k-features k`. Feature ranking is performed after within-split standardization, with
+feature index used as the deterministic tie-break. The refit can retain fewer than `k` active coefficients
+when the L1 model zeros some of them again. The colon-cancer high-regularization top-5 runs are grouped in:
+
+```bash
+scripts/run_colon_top5_experiments.sh
+```
+
 ## Data
 
 - `data/synthetic_signal.csv` is the synthetic benchmark used in the manuscript.

@@ -109,6 +109,7 @@ def run_single_split(task):
 
     clf = ComplexL1NeuronsClassifier(
         n_neurons=cfg["n_neurons"],
+        top_k_features=cfg.get("top_k_features"),
         base_model=cfg["base_model"],
         C=cfg["C"],
         class_weight_mode=cfg.get("class_weight_mode", "balanced"),
@@ -139,6 +140,7 @@ def run_single_split(task):
         for n in clf.neurons_
     ]
     neuron_fit_times_full = clf.get_neuron_fit_times_sec()
+    neuron_fit_diagnostics_full = clf.get_neuron_fit_diagnostics()
     gt = cfg.get("ground_truth")
 
     y_train = y[train_idx]
@@ -219,6 +221,7 @@ def run_single_split(task):
             raw_by_set_sample[("test", int(sample_index))][f"score_n{n}"] = float(score)
 
         neuron = clf.neurons_[n - 1]
+        fit_diagnostics = neuron_fit_diagnostics_full[n - 1]
         coef = np.asarray(getattr(neuron, "coef_", []), dtype=float).reshape(-1)
         coef_l2_norm = float(np.linalg.norm(coef, ord=2))
         if coef_l2_norm <= 1e-12:
@@ -267,6 +270,7 @@ def run_single_split(task):
                 "unit_score_band_width": 2.0 / coef_l2_norm,
                 "intercept": intercept,
                 "fit_time_sec": float(neuron_fit_times_full[n - 1]),
+                **fit_diagnostics,
                 **{f"train_{k}": v for k, v in train_margin.items()},
                 **{f"test_{k}": v for k, v in test_margin.items()},
             }

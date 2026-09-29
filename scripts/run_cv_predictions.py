@@ -18,6 +18,12 @@ def parse_args():
     parser.add_argument("--has-header", action="store_true")
     parser.add_argument("--n-neurons", type=int, default=31)
     parser.add_argument(
+        "--top-k-features",
+        type=int,
+        default=None,
+        help="Refit every neuron on at most the k largest nonzero absolute coefficients.",
+    )
+    parser.add_argument(
         "--base-model",
         choices=["logreg", "svm", "cpl"],
         default="cpl",

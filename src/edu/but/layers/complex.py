@@ -1,4 +1,5 @@
 import time
+import warnings
 from typing import Optional, List
 import numpy as np
 
@@ -9,8 +10,39 @@ from sklearn.svm import LinearSVC
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.validation import check_X_y, check_array
 from sklearn.exceptions import NotFittedError
+from sklearn.exceptions import ConvergenceWarning
 
 from edu.but.cpl.cpl_lp import CPL_LP
+
+
+class _FeatureSubsetEstimator:
+    """Expose a refitted subset model as an estimator on the original input columns."""
+
+    def __init__(self, estimator, selected_indices, input_dim):
+        self.estimator = estimator
+        self.selected_indices = np.asarray(selected_indices, dtype=int)
+        subset_coef = np.asarray(estimator.coef_)
+        if subset_coef.ndim == 1:
+            subset_coef = subset_coef.reshape(1, -1)
+        self.coef_ = np.zeros((subset_coef.shape[0], int(input_dim)), dtype=float)
+        self.coef_[:, self.selected_indices] = subset_coef
+        self.intercept_ = np.asarray(estimator.intercept_)
+        self.classes_ = getattr(estimator, "classes_", None)
+
+    def __getattr__(self, name):
+        return getattr(self.estimator, name)
+
+    def _subset(self, X):
+        return X[:, self.selected_indices]
+
+    def decision_function(self, X):
+        return self.estimator.decision_function(self._subset(X))
+
+    def predict(self, X):
+        return self.estimator.predict(self._subset(X))
+
+    def predict_proba(self, X):
+        return self.estimator.predict_proba(self._subset(X))
 
 
 class _CPLLPWrapper:
@@ -72,6 +104,9 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         Ziarno RNG.
     zero_threshold : float
         Próg, poniżej którego współczynnik traktujemy jako 0.
+    top_k_features : Optional[int]
+        Jeżeli ustawione, wybierz do refitu najwyżej k niezerowych współczynników
+        o największej wartości bezwzględnej.
     verbose : int
         0 – cisza; >0 – wypisuje info w trakcie fit.
     """
@@ -85,6 +120,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         max_iter: int = 2000,
         random_state: Optional[int] = None,
         zero_threshold: float = 1e-8,
+        top_k_features: Optional[int] = None,
         verbose: int = 0,
     ):
         self.n_neurons = n_neurons
@@ -94,6 +130,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         self.max_iter = max_iter
         self.random_state = random_state
         self.zero_threshold = zero_threshold
+        self.top_k_features = top_k_features
         self.verbose = verbose
 
     # ---------- konstrukcja bazowego neuronu ----------
@@ -177,8 +214,24 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
 
     # ---------- fit ----------
 
+    @staticmethod
+    def _fit_with_diagnostics(estimator, X, y, sample_weight):
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", ConvergenceWarning)
+            estimator.fit(X, y, sample_weight=sample_weight)
+        converged = not any(
+            issubclass(item.category, ConvergenceWarning) for item in caught
+        )
+        n_iter = getattr(estimator, "n_iter_", None)
+        if n_iter is not None:
+            values = np.asarray(n_iter).reshape(-1)
+            n_iter = int(np.max(values)) if values.size else None
+        return converged, n_iter
+
     def fit(self, X, y):
         X, y = check_X_y(X, y, accept_sparse="csr")
+        if self.top_k_features is not None and self.top_k_features < 1:
+            raise ValueError("top_k_features must be >= 1 or None.")
         self.n_features_in_ = X.shape[1]
 
         # kodowanie etykiet na 0..K-1
@@ -194,6 +247,7 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
 
         self.neurons_: List = []
         self.neuron_fit_times_sec_: List[float] = []
+        self.neuron_fit_diagnostics_: List[dict] = []
         self._input_feature_groups_: List[np.ndarray] = []   # cechy, na których neuron był trenowany
         self.feature_groups_: List[np.ndarray] = []          # cechy z niezerowymi wagami (dla interpretacji)
 
@@ -214,7 +268,39 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
             X_sub = X[:, input_features]
             sample_weight = self._build_sample_weight(y_enc)
             neuron_fit_start = time.perf_counter()
-            base_clf.fit(X_sub, y_enc, sample_weight=sample_weight)
+            selection_converged, selection_n_iter = self._fit_with_diagnostics(
+                base_clf, X_sub, y_enc, sample_weight
+            )
+            refit_performed = False
+            refit_converged = None
+            refit_n_iter = None
+
+            initial_coef = np.asarray(getattr(base_clf, "coef_", []))
+            if initial_coef.ndim == 1:
+                initial_coef = initial_coef.reshape(1, -1)
+            initial_used = np.flatnonzero(
+                np.any(np.abs(initial_coef) > self.zero_threshold, axis=0)
+            )
+            if (
+                self.top_k_features is not None
+                and initial_used.size > self.top_k_features
+            ):
+                importance = np.max(np.abs(initial_coef[:, initial_used]), axis=0)
+                ranked = sorted(
+                    zip(initial_used.tolist(), importance.tolist()),
+                    key=lambda item: (-item[1], item[0]),
+                )
+                refit_indices = np.asarray(
+                    [index for index, _ in ranked[: self.top_k_features]], dtype=int
+                )
+                refit_clf = self._make_base_estimator(n_samples=X.shape[0])
+                refit_converged, refit_n_iter = self._fit_with_diagnostics(
+                    refit_clf, X_sub[:, refit_indices], y_enc, sample_weight
+                )
+                refit_performed = True
+                base_clf = _FeatureSubsetEstimator(
+                    refit_clf, refit_indices, X_sub.shape[1]
+                )
             neuron_fit_time_sec = float(time.perf_counter() - neuron_fit_start)
 
             coef = getattr(base_clf, "coef_", None)
@@ -246,6 +332,15 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
 
             self.neurons_.append(base_clf)
             self.neuron_fit_times_sec_.append(neuron_fit_time_sec)
+            self.neuron_fit_diagnostics_.append(
+                {
+                    "selection_converged": selection_converged,
+                    "selection_n_iter": selection_n_iter,
+                    "refit_performed": refit_performed,
+                    "refit_converged": refit_converged,
+                    "refit_n_iter": refit_n_iter,
+                }
+            )
             self._input_feature_groups_.append(input_features)
             self.feature_groups_.append(selected_features)
 
@@ -360,6 +455,11 @@ class ComplexL1NeuronsClassifier(BaseEstimator, ClassifierMixin):
         self._check_is_fitted()
         return list(self.neuron_fit_times_sec_)
 
+    def get_neuron_fit_diagnostics(self) -> List[dict]:
+        """Return convergence diagnostics for selection and optional top-k refit."""
+        self._check_is_fitted()
+        return [dict(item) for item in self.neuron_fit_diagnostics_]
+
     def _predict_from_votes(self, P, n_neurons: int):
         if n_neurons < 1:
             raise ValueError("n_neurons must be >= 1.")
@@ -403,6 +503,7 @@ class ComplexL1OvRClassifier(BaseEstimator, ClassifierMixin):
         max_iter: int = 2000,
         random_state: Optional[int] = None,
         zero_threshold: float = 1e-8,
+        top_k_features: Optional[int] = None,
         verbose: int = 0,
     ):
         self.n_neurons = n_neurons
@@ -412,6 +513,7 @@ class ComplexL1OvRClassifier(BaseEstimator, ClassifierMixin):
         self.max_iter = max_iter
         self.random_state = random_state
         self.zero_threshold = zero_threshold
+        self.top_k_features = top_k_features
         self.verbose = verbose
 
     def _make_base_complex(self):
@@ -424,6 +526,7 @@ class ComplexL1OvRClassifier(BaseEstimator, ClassifierMixin):
             max_iter=self.max_iter,
             random_state=self.random_state,
             zero_threshold=self.zero_threshold,
+            top_k_features=self.top_k_features,
             verbose=self.verbose,
         )
 

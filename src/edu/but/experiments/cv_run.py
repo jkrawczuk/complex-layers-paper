@@ -87,6 +87,7 @@ def run_cv_predictions(args):
                 "test_idx": test_idx,
                 "cfg": {
                     "n_neurons": args.n_neurons,
+                    "top_k_features": args.top_k_features,
                     "base_model": args.base_model,
                     "C": args.C,
                     "class_weight_mode": args.class_weight,
@@ -171,6 +172,7 @@ def run_cv_predictions(args):
         "class_weight": args.class_weight,
         "standardize_features": bool(args.standardize_features),
         "n_neurons_requested": args.n_neurons,
+        "top_k_features": args.top_k_features,
         "n_neurons_built": max_built,
         "cv_folds": args.cv_folds,
         "cv_repeats": args.cv_repeats,
