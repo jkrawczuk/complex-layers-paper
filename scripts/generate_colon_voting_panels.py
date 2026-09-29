@@ -11,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results" / "voting_experiments_v1" / "colon_cancer"
 OUT = RESULTS / "figures"
 MODELS = ("cpl", "svm", "logreg")
-REGIMES = ("low", "high")
+REGIMES = ("low", "high", "high_top5")
+REGIME_LABELS = {"low": "low", "high": "high", "high_top5": "high-top5"}
 MODEL_LABELS = {"cpl": "CPL", "svm": "SVM", "logreg": "Logistic regression"}
 COLORS = {
     "uniform": "#1f77b4",
@@ -67,13 +68,13 @@ def median_iqr(values):
 
 
 def setup_axes(title, ylabel):
-    fig, axes = plt.subplots(2, 3, figsize=(15, 8.5), sharex=False)
-    fig.subplots_adjust(left=0.07, right=0.98, bottom=0.08, top=0.90, wspace=0.22, hspace=0.32)
-    fig.suptitle(title, fontsize=16, y=0.97)
+    fig, axes = plt.subplots(len(REGIMES), 3, figsize=(15, 12.2), sharex=False)
+    fig.subplots_adjust(left=0.07, right=0.98, bottom=0.06, top=0.93, wspace=0.22, hspace=0.38)
+    fig.suptitle(title, fontsize=16, y=0.98)
     for row, regime in enumerate(REGIMES):
         for col, model in enumerate(MODELS):
             ax = axes[row, col]
-            ax.set_title(f"{MODEL_LABELS[model]} — {regime}")
+            ax.set_title(f"{MODEL_LABELS[model]} — {REGIME_LABELS[regime]}")
             ax.set_xlabel("neuron depth")
             if col == 0:
                 ax.set_ylabel(ylabel)
